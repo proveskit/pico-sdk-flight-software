@@ -33,7 +33,7 @@
  *
  */
 
-#include "Adafruit_MAX31856.h"
+#include "adafruit_max31856.h"
 #ifdef __AVR
 #include <avr/pgmspace.h>
 #elif defined(ESP8266)

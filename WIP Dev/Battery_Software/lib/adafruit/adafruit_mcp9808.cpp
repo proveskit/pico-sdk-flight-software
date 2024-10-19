@@ -27,7 +27,7 @@
  *     v1.0 - First release
  */
 
-#include "Adafruit_MCP9808.h"
+#include "adafruit_mcp9808.h"
 
 /*!
  *    @brief  Instantiates a new MCP9808 class

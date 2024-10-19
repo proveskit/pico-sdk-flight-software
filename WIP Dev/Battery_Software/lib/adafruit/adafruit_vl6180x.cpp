@@ -26,7 +26,7 @@
  *
  */
 
-#include "Adafruit_VL6180X.h"
+#include "adafruit_vl6180x.h"
 #include "Arduino.h"
 
 // Define some additional registers mentioned in application notes and we use

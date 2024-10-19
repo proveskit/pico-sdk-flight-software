@@ -14,8 +14,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef PCA9685_H
-#define PCA9685_H
+#ifndef _ADAFRUIT_PCA9685_H
+#define _ADAFRUIT_PCA9685_H
 
 #if defined(ARDUINO) && ARDUINO >= 100
 #include "Arduino.h"

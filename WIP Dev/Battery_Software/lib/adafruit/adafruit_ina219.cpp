@@ -28,7 +28,7 @@
 
 #include <Wire.h>
 
-#include "Adafruit_INA219.h"
+#include "adafruit_ina219.h"
 
 /*!
  *  @brief  Instantiates a new INA219 class

@@ -35,7 +35,7 @@
 #include "Arduino.h"
 #include <Wire.h>
 
-#include "Adafruit_PCT2075.h"
+#include "adafruit_pct2075.h"
 
 /*!
  *    @brief  Instantiates a new PCT2075 class

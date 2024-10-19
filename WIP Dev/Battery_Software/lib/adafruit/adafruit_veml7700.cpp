@@ -27,7 +27,7 @@
  *     v1.0 - First release
  */
 
-#include "Adafruit_VEML7700.h"
+#include "adafruit_veml7700.h"
 
 /*!
  *    @brief  Instantiates a new VEML7700 class
