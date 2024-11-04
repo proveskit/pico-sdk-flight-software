@@ -3,6 +3,7 @@ if (NOT PICO_NO_HARDWARE)
     add_subdirectory(boot)
 endif ()
 
+target_include_directories(boot PUBLIC lib)  # Make sure boot can see the library headers
 target_include_directories(main PUBLIC lib)
 target_include_directories(neopixel PUBLIC lib)
 target_include_directories(tools PUBLIC lib)

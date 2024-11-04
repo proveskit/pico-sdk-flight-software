@@ -1,4 +1,7 @@
-add_library(main main/main.h main/main.cpp)
+add_library(main STATIC
+    main/main.h
+    main/main.cpp
+)
 add_library(neopixel neopixel/neopixel.h neopixel/neopixel.cpp)
 add_library(tools tools/tools.h tools/tools.cpp)
 add_library(pysquared pysquared/pysquared.h pysquared/pysquared.cpp)
