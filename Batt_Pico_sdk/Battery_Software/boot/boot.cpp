@@ -4,6 +4,7 @@
 #include <neopixel/neopixel.h>
 
 #include "pico/stdlib.h"
+#include "hardware/flash.h"
 #include "hardware/pio.h"
 #include "hardware/gpio.h"
 #include "hardware/clocks.h"
@@ -13,7 +14,7 @@
 void generate_blink_pio_sm(PIO pio, uint sm, uint pin, uint offset, float clk_freq);//method initialization
 
 int main() {
-    stdio_init_all();                                                               //initializing USB
+    stdio_usb_init();                                                               //initializing USB
     printf("Booting up!\n");
     PIO pio_0 = pio0;                                                               //choosing hardware pio0 to handle LED, WDT, and Neopixel
     uint offset_blink = pio_add_program(pio_0, &blink_program);                     //finding the blink program in memory and recording offset

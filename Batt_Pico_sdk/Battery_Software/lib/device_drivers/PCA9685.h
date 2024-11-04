@@ -7,7 +7,7 @@ public:
 
     void configure();
     void toggleOutputs(bool state); // true for ON, false for OFF
-    void setDutyCycle(uint8_t port, uint16_t duty_cycle); // port: 0-15, duty_cycle: 0-4095
+    void setDutyCycle(uint8_t port, uint16_t duty_cycle, bool state); // port: 0-15, duty_cycle: 0-4095
     void setPortState(uint8_t port, bool state); // true for ON, false for OFF
 
 private:

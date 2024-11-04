@@ -14,7 +14,6 @@
 
 #define neopixel_wrap_target 0
 #define neopixel_wrap 3
-#define neopixel_pio_version 0
 
 #define neopixel_T1 2
 #define neopixel_T2 5
@@ -34,10 +33,6 @@ static const struct pio_program neopixel_program = {
     .instructions = neopixel_program_instructions,
     .length = 4,
     .origin = -1,
-    .pio_version = 0,
-#if PICO_PIO_VERSION > 0
-    .used_gpio_ranges = 0x0
-#endif
 };
 
 static inline pio_sm_config neopixel_program_get_default_config(uint offset) {
