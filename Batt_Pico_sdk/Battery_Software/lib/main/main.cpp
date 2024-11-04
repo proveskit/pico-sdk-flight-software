@@ -60,10 +60,10 @@ void main_program(neopixel neo){
     t.debug_print("updated boot count: " + to_string(data[boot_reg]) + "\n");
     t.debug_print("updated status reg: " + to_string(data[status_reg]) + "\n");
 
-    if(!satellite.burned && !previous_brownout){
-        uint loiter_time=270;
+    if(!satellite.burned && !previous_brownout && satellite.is_armed()) {
+        uint loiter_time = 270;
         uint counter = 0;
-        while(counter < loiter_time){
+        while(counter < loiter_time) {
             t.debug_print("Commencing burnwire in " + to_string(loiter_time-counter) + "seconds...\n");
             neo.put_pixel(neo.urgb_u32(0xFF,0x00,0xFF));
             sleep_ms(500);
@@ -72,12 +72,12 @@ void main_program(neopixel neo){
             watchdog_update();
             counter++;
         }
-
-        if(functions.burn_handler(has_burned_before)){
+        if(functions.burn_handler(has_burned_before)) {
+            satellite.arm(false);  // Disarm after successful burn
             satellite.bit_set(status_reg, burned_bit, true);
             satellite.bit_set(status_reg, brownout_bit, false);
             satellite.flash_update();
-            t.debug_print("Flash updated to reflect successful burn!\n");
+            t.debug_print("Flash updated to reflect successful burn and disarmed status!\n");
         }
     }
     

@@ -34,6 +34,7 @@ private:
     tools t;
     const uint8_t *flash_target_contents;
     bool charge_status;
+    bool armed = false;  // Initialize to false by default
 
 public:
     INA219 battery_power;
@@ -130,6 +131,10 @@ public:
     bool is_charging();
     bool charging(bool state);
     int num_error();
+
+    // Add getter/setter methods for armed status
+    bool is_armed() { return armed; }
+    void arm(bool state) { armed = state; }
 
 };
 #endif
