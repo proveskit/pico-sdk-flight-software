@@ -13,6 +13,9 @@
 #include "hardware/watchdog.h"
 
 class satellite_functions{
+    private:
+    tools t;
+    
     public:
     satellite_functions(pysquared& satellite);
     void battery_manager();
@@ -22,7 +25,6 @@ class satellite_functions{
     void short_hybernate();
     void handle_errors();
     pysquared& c;
-    private:
-    tools t;
+
 };
 #endif

@@ -30,6 +30,11 @@ extern uint32_t ADDR_PERSISTENT[];
 #define AIRCR_Register (*((volatile uint32_t*)(PPB_BASE + 0x0ED0C)))
 
 class pysquared{
+private:
+    tools t;
+    const uint8_t *flash_target_contents;
+    bool charge_status;
+
 public:
     INA219 battery_power;
     INA219 solar_power;
@@ -125,9 +130,6 @@ public:
     bool is_charging();
     bool charging(bool state);
     int num_error();
-private:
-    tools t;
-    const uint8_t *flash_target_contents;
-    bool charge_status;
+
 };
 #endif

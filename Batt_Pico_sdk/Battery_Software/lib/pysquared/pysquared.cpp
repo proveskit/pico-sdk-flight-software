@@ -1,8 +1,15 @@
 #include "pysquared.h"
                                                       //instantiate tools class in pysquared
 pysquared::pysquared(neopixel neo) : 
-battery_power(i2c0, 0x40), solar_power(i2c0, 0x44), internal_temp(i2c0, 0x4f), lidar(i2c0, 0x29), led_driver(i2c0, 0x56), adc(i2c0,0x48),
-t(true, "[PYSQUARED] "), can_bus(spi0, spi0_cs0_pin){
+    t(true, "[PYSQUARED] "),
+    battery_power(i2c0, 0x40),
+    solar_power(i2c0, 0x44),
+    internal_temp(i2c0, 0x4f),
+    lidar(i2c0, 0x29),
+    led_driver(i2c0, 0x56),
+    adc(i2c0, 0x48),
+    can_bus(spi0, spi0_cs0_pin)
+{
     /*
         Initialize hardware core to operations on satellite.
     */

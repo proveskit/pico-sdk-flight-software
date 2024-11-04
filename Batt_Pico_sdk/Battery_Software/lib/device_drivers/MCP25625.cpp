@@ -294,19 +294,19 @@ bool MCP25625::sendCANMessage(const CANMessage& message) {
     sleep_ms(100);
     bool failed = false;
     int8_t sent = readRegister(MCP_TXB0CTRL);
-    if((sent && 0x40) == 0x40){
+    if((sent & 0x40) == 0x40){
         printf("Transmission aborted!\n");
         failed = true;
     }
-    if((sent && 0x20) == 0x20){
+    if((sent & 0x20) == 0x20){
         printf("Message lost arbitration!\n");
         failed = true;
     }
-    if((sent && 0x10) == 0x10){
+    if((sent & 0x10) == 0x10){
         printf("Transmission error!\n");
         failed = true;
     }
-    if((sent && 0x08) == 0x08){
+    if((sent & 0x08) == 0x08){
         printf("Message didn't send!\n");
         failed = true;
     }
