@@ -7,8 +7,8 @@ if (TARGET tinyusb_device)
     target_sources(boot PRIVATE boot.cpp)
 
     # pull in common dependencies and additional pwm hardware support
-    target_link_libraries(boot PRIVATE pico_stdlib hardware_pio hardware_gpio hardware_i2c main neopixel)
-
+    target_link_libraries(boot PRIVATE pico_stdlib hardware_pio hardware_gpio hardware_pwm hardware_i2c hardware_spi hardware_uart hardware_irq hardware_flash main neopixel)
+    pico_set_linker_script(boot ${CMAKE_CURRENT_LIST_DIR}/memmap_custom.ld)
     # enable usb output, disable uart output
     pico_enable_stdio_usb(boot 1)
     pico_enable_stdio_uart(boot 0)

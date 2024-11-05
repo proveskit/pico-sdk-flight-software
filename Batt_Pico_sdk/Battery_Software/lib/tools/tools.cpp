@@ -4,7 +4,7 @@ tools::tools(bool print, const char* prog){
     debug=print;
     program=prog;
 }
-void tools::debug_print(const char* message){
+void tools::debug_print(const string message){
     if(debug){
         uint32_t sec_since_boot = to_ms_since_boot(get_absolute_time())/1000;
         uint32_t min_since_boot = sec_since_boot/60;
@@ -13,7 +13,7 @@ void tools::debug_print(const char* message){
         uint hours = min_since_boot/60;
         printf("%02d:%02d:%02d ",hours,mins,secs);
         printf(program);
-        printf(message);
+        printf(message.c_str());
     }
 }
 void tools::i2c_scan(i2c_inst_t *i2c){

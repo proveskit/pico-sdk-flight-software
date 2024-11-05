@@ -25,15 +25,19 @@ void PCA9685::toggleOutputs(bool state) {
     writeRegister(0x00, mode1);
 }
 
-void PCA9685::setDutyCycle(uint8_t port, uint16_t duty_cycle) {
+void PCA9685::setDutyCycle(uint8_t port, uint16_t duty_cycle, bool state) {
     if (port > 15) {
         // Invalid port number, do nothing
         return;
     }
+    uint8_t value = 0x00;
+    if(state) {
+        value = 0x10;
+    }
 
     // Set the LED ON and OFF registers for the specified port
     writeRegister(0x06 + 4 * port, 0x00);              // LEDn_ON_L
-    writeRegister(0x07 + 4 * port, 0x00);              // LEDn_ON_H
+    writeRegister(0x07 + 4 * port, value);              // LEDn_ON_H
     writeRegister(0x08 + 4 * port, duty_cycle & 0xFF); // LEDn_OFF_L
     writeRegister(0x09 + 4 * port, duty_cycle >> 8);   // LEDn_OFF_H
 }
@@ -47,10 +51,10 @@ void PCA9685::setPortState(uint8_t port, bool state) {
     // Set the LED ON and OFF registers to turn on or off the specified port
     if (state) {
         // Turn on the specified port
-        setDutyCycle(port, 4095); // Set to full brightness
+        setDutyCycle(port, 4095, state); // Set to full brightness
     } else {
         // Turn off the specified port
-        setDutyCycle(port, 0); // Set to minimum brightness (fully off)
+        setDutyCycle(port, 0, state); // Set to minimum brightness (fully off)
     }
 }
 
