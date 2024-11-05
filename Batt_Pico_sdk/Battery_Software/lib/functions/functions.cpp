@@ -141,21 +141,18 @@ bool satellite_functions::burn_handler(bool has_been_attempted){
     
 }
 
-void satellite_functions::long_hybernate(){
-    t.debug_print("Long hybernation starting!\n");
-    for(int i = 0; i < 100; i++){
-        sleep_ms(2000);
-        watchdog_update();
-        sleep_ms(2000);
+void satellite_functions::short_hybernate() {
+    t.debug_print("short hybernation starting!\n");
+    for (int i = 0; i < 10; i++) {
+        t.safe_sleep(4000);  // Replace both sleep_ms(2000) calls
     }
+    t.debug_print("short hybernation complete\n");
 }
 
-void satellite_functions::short_hybernate(){
-    t.debug_print("short hybernation starting!\n");
-    for(int i = 0; i < 10; i++){
-        sleep_ms(2000);
-        watchdog_update();
-        sleep_ms(2000);
+void satellite_functions::long_hybernate() {
+    t.debug_print("Long hybernation starting!\n");
+    for (int i = 0; i < 100; i++) {
+        t.safe_sleep(4000);
     }
 }
 

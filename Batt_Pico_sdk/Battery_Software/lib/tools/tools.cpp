@@ -38,3 +38,16 @@ void tools::i2c_scan(i2c_inst_t *i2c){
         printf(addr % 16 == 15 ? "\n" : "  ");
     }
 }
+
+void tools::safe_sleep(uint32_t ms) {
+    const uint32_t WATCHDOG_INTERVAL = 1000;  // Update every second
+    while (ms > 0) {
+        uint32_t sleep_time = (ms < WATCHDOG_INTERVAL) ? ms : WATCHDOG_INTERVAL;
+        sleep_ms(sleep_time);
+        watchdog_update();
+        ms -= sleep_time;
+        if (debug) {
+            debug_print("Watchdog updated during sleep");
+        }
+    }
+}

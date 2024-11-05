@@ -176,46 +176,20 @@ void critical_power_operations(tools t, satellite_functions functions) {
 }
 
 void low_power_operations(tools t, neopixel neo, satellite_functions functions) {
-    t.debug_print("Starting low power operations...\n");
+    t.debug_print("Satellite is in low power mode!\n");
+    neo.put_pixel(neo.urgb_u32(LED_RED.r, LED_RED.g, LED_RED.b));
+    functions.c.flight_computer_on();
+    functions.c.uart_receive_handler();
     
-    try {
-        t.debug_print("Setting LED state...\n");
-        neo.put_pixel(neo.urgb_u32(LED_RED.r, LED_RED.g, LED_RED.b));
-        
-        t.debug_print("Turning on flight computer...\n");
-        functions.c.flight_computer_on();
-        
-        t.debug_print("Starting UART receive cycle...\n");
+    for (int i = 0; i < 9; i++) {
+        t.safe_sleep(SLEEP_INTERVAL_MS);
         functions.c.uart_receive_handler();
-        
-        for (int i = 0; i < 9; i++) {
-            t.debug_print("UART cycle " + to_string(i + 1) + " of 9\n");
-            sleep_ms(SLEEP_INTERVAL_MS);
-            functions.c.uart_receive_handler();
-            watchdog_update();  // Add watchdog update in the loop
-        }
-        
-        t.debug_print("Final sleep before flight computer off...\n");
-        sleep_ms(SLEEP_INTERVAL_MS);
-        
-        t.debug_print("Turning off flight computer...\n");
-        functions.c.flight_computer_off();
-        
-        t.debug_print("Starting short hibernation...\n");
-        functions.short_hybernate();
-        
-        t.debug_print("Running battery manager...\n");
-        functions.battery_manager();
-        
-        t.debug_print("Updating watchdog...\n");
-        watchdog_update();
-        
-        t.debug_print("Low power operations complete\n");
-    } catch (const std::exception& e) {
-        t.debug_print("ERROR in low power operations: " + string(e.what()) + "\n");
-    } catch (...) {
-        t.debug_print("UNKNOWN ERROR in low power operations\n");
     }
+    
+    t.safe_sleep(SLEEP_INTERVAL_MS);
+    functions.c.flight_computer_off();
+    functions.short_hybernate();
+    functions.battery_manager();
 }
 
 void normal_power_operations(tools t, neopixel neo, satellite_functions functions) {
@@ -227,7 +201,7 @@ void normal_power_operations(tools t, neopixel neo, satellite_functions function
     functions.c.uart_receive_handler();
     t.debug_print("LiDAR Distance: " + to_string(functions.c.lidar.getDistance()) + "mm\n");
     watchdog_update();
-    sleep_ms(SLEEP_INTERVAL_MS);
+    t.safe_sleep(SLEEP_INTERVAL_MS);
 }
 
 void maximum_power_operations(tools t, neopixel neo, satellite_functions functions) {
@@ -239,5 +213,5 @@ void maximum_power_operations(tools t, neopixel neo, satellite_functions functio
     functions.c.uart_receive_handler();
     t.debug_print("LiDAR Distance: " + to_string(functions.c.lidar.getDistance()) + "mm\n");
     watchdog_update();
-    sleep_ms(SLEEP_INTERVAL_MS);
+    t.safe_sleep(SLEEP_INTERVAL_MS);
 }
