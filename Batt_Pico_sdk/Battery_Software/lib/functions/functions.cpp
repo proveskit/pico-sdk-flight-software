@@ -142,17 +142,15 @@ bool satellite_functions::burn_handler(bool has_been_attempted){
 }
 
 void satellite_functions::short_hybernate() {
-    t.debug_print("short hybernation starting!\n");
-    for (int i = 0; i < 10; i++) {
-        t.safe_sleep(4000);  // Replace both sleep_ms(2000) calls
-    }
-    t.debug_print("short hybernation complete\n");
+   t.debug_print("SHORT hybernation starting!\n");
+   t.safe_sleep(SHORT_HIBERNATE_SECONDS * 1000);  // Convert seconds to milliseconds
+   t.debug_print("SHORT hybernation complete\n");
 }
 
 void satellite_functions::long_hybernate() {
     t.debug_print("Long hybernation starting!\n");
     // Sleep for ~400 seconds (previous was 100 * 4000ms = 400s)
-    uint32_t wake_time = /* TODO: Get current RTC time */ + 400;
+    uint32_t wake_time = /* TODO: Get current RTC time */ + LONG_HIBERNATE_SECONDS;
     t.sleep_until_rtc(wake_time);
 }
 

@@ -15,7 +15,11 @@
 class satellite_functions{
     private:
     tools t;
-    
+
+    //Hibernate times
+    static constexpr uint32_t SHORT_HIBERNATE_SECONDS = 10;  // 10 seconds
+    static constexpr uint32_t LONG_HIBERNATE_SECONDS = 400;  // ~6.5 minutes
+
     public:
     satellite_functions(pysquared& satellite);
     void battery_manager();
