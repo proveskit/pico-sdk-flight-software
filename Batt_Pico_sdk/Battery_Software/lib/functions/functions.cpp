@@ -4,30 +4,77 @@ satellite_functions::satellite_functions(pysquared& satellite):t(true, "[FUNCTIO
     t.debug_print("Functions initialized\n");
 }
 
-void satellite_functions::battery_manager(){
+void satellite_functions::battery_manager() {
+    // Get all readings with validation checks
     float board_temp = c.board_temp();
-    float battery_temp = c.thermocouple_temp();
-    float battery_voltage = c.battery_voltage();
-    float draw_current = c.draw_current();
-    float charge_voltage = c.charge_voltage();
-    float charge_current = c.charge_current();
+    float battery_temp = c.getThermocoupleTemp();
+    
+    // Battery monitor readings
+    float battery_voltage = c.getBatteryBusVoltage();
+    float draw_current = c.getBatteryCurrent();
+    
+    // Solar monitor readings
+    float charge_voltage = c.getSolarBusVoltage();
+    float charge_current = c.getSolarCurrent();
+
+    // Validate readings and log
+    bool valid_readings = true;
+    
+    if (battery_temp < -50 || battery_temp > 100) {
+        t.debug_print("WARNING: Invalid battery temperature reading: " + to_string(battery_temp) + "C\n");
+        valid_readings = false;
+    }
+    
+    if (board_temp < -50 || board_temp > 100) {
+        t.debug_print("WARNING: Invalid board temperature reading: " + to_string(board_temp) + "C\n");
+        valid_readings = false;
+    }
+    
+    if (battery_voltage < 0 || battery_voltage > 10) {
+        t.debug_print("WARNING: Invalid battery voltage reading: " + to_string(battery_voltage) + "V\n");
+        valid_readings = false;
+    }
+
+    // Log all readings
     t.debug_print("Board Temperature: " + to_string(board_temp) + "C\n");
     t.debug_print("Battery Temperature: " + to_string(battery_temp) + "C\n");
     t.debug_print("Battery Voltage: " + to_string(battery_voltage) + "V\n");
     t.debug_print("Charge Voltage: " + to_string(charge_voltage) + "V\n");
     t.debug_print("Draw Current: " + to_string(draw_current) + "mA\n");
     t.debug_print("Charge Current: " + to_string(charge_current) + "mA\n");
-    if(battery_voltage >= 7.4){c.pwr_mode=3;}
-    else if(battery_voltage < 7.4 && battery_voltage >= 6.8){c.pwr_mode=2;}
-    else if(battery_voltage < 6.8 && battery_voltage >= 6.4){c.pwr_mode=1;}
-    else if(battery_voltage < 6.4){c.pwr_mode=0;}
-    if(draw_current > charge_current && c.is_charging()){
-        t.debug_print("Battery is depleting... Battery is charging slower than system is drawing!\n");
-        c.charging(true);
-    }
-    if(battery_temp < -10 && board_temp < -10){
-        t.debug_print("battery temperature is low, attempting to heat...\n");
-        battery_heater();
+
+    // Only proceed with power mode changes if readings are valid
+    if (valid_readings) {
+        // Power mode setting based on battery voltage
+        if (battery_voltage >= 7.4) {
+            t.debug_print("Setting power mode to 3 (maximum)\n");
+            c.pwr_mode = 3;
+        } else if (battery_voltage >= 6.8) {
+            t.debug_print("Setting power mode to 2 (normal)\n");
+            c.pwr_mode = 2;
+        } else if (battery_voltage >= 6.4) {
+            t.debug_print("Setting power mode to 1 (low)\n");
+            c.pwr_mode = 1;
+        } else {
+            t.debug_print("Setting power mode to 0 (critical)\n");
+            c.pwr_mode = 0;
+        }
+
+        // Check charging status
+        if (draw_current > charge_current && c.is_charging()) {
+            t.debug_print("Battery is depleting... Battery is charging slower than system is drawing!\n");
+            c.charging(true);
+        }
+
+        // Temperature management
+        if (battery_temp < -10 && board_temp < -10) {
+            t.debug_print("battery temperature is low, attempting to heat...\n");
+            battery_heater();
+        }
+    } else {
+        // If readings are invalid, default to a safe power mode
+        t.debug_print("WARNING: Invalid readings detected, defaulting to low power mode\n");
+        c.pwr_mode = 1;  // Or could go to critical (0) if you want to be more conservative
     }
 }
 

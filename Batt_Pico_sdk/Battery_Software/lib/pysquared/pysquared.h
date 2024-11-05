@@ -33,8 +33,15 @@ class pysquared{
 private:
     tools t;
     const uint8_t *flash_target_contents;
+
     bool charge_status;
     bool armed = false;  // Initialize to false by default
+
+    bool lidar_initialized = false;
+    bool led_driver_initialized = false;
+    bool adc_initialized = false;
+    bool battery_monitor_initialized = false;
+    bool solar_monitor_initialized = false;
 
 public:
     INA219 battery_power;
@@ -135,6 +142,29 @@ public:
     // Add getter/setter methods for armed status
     bool is_armed() { return armed; }
     void arm(bool state) { armed = state; }
+
+    // Sensor Status getters
+    bool is_lidar_ready() const;
+    bool is_led_driver_ready() const;
+    bool is_adc_ready() const;
+    bool is_battery_monitor_ready() const;
+    bool is_solar_monitor_ready() const;
+
+    // Safe wrapper declarations
+    float getLidarDistance();
+    void configureLEDs();
+
+    // Battery monitor wrappers
+    float getBatteryBusVoltage();
+    float getBatteryShuntVoltage();
+    float getBatteryCurrent();
+    
+    // Solar monitor wrappers
+    float getSolarBusVoltage();
+    float getSolarShuntVoltage();
+    float getSolarCurrent();
+
+    float getThermocoupleTemp();
 
 };
 #endif

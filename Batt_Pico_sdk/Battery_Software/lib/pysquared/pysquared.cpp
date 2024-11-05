@@ -82,71 +82,154 @@ pysquared::pysquared(neopixel neo) :
         gpio_set_function(spi1_sck_pin, GPIO_FUNC_SPI);
         gpio_set_function(spi1_mosi_pin, GPIO_FUNC_SPI);
         t.debug_print("SPI Bus Initialized!\n");
-        /*
-            LED Driver init
-        */
-        try{
+
+        // LED Driver init
+        try {
             led_driver.configure();
+            led_driver_initialized = true;
             all_faces_on();
             camera_on();
             t.debug_print("LED Driver Initialized!\n");
-        }
-        catch(...){
+        } catch(...) {
+            led_driver_initialized = false;
             t.debug_print("ERROR initializing LED Driver!\n");
             error_count++;
         }
-        /*
-            LiDAR init
-        */
-        try{
-            lidar.begin();
-            t.debug_print("LiDAR Initialized!\n");
-        }
-        catch(...){
-            t.debug_print("ERROR initializing LiDAR!\n");
-            error_count++;
-        }
-        /*
-            Thermocouple
-        */
-        try{ 
+
+        // ADC init
+        try { 
             adc.configure();
+            adc_initialized = true;
             t.debug_print("Thermocouple ADC Initialized!\n");
-        }
-        catch(...){
+        } catch(...) {
+            adc_initialized = false;
             t.debug_print("ERROR initializing Thermocouple ADC!\n");
             error_count++;
         }
-        /*
-            Battery Power Monitor init
-        */
-        try{
+
+        // Battery Monitor init
+        try {
             battery_power.configure();
+            battery_monitor_initialized = true;
             t.debug_print("Battery Power Monitor Initialized!\n");
-        }
-        catch(...){
+        } catch(...) {
+            battery_monitor_initialized = false;
             t.debug_print("ERROR initializing Battery Power Monitor!\n");
             error_count++;
         }
-        /*
-            Solar Power Monitor init
-        */
-       try{
+
+        // Solar Monitor init
+        try {
             solar_power.configure();
+            solar_monitor_initialized = true;
             t.debug_print("Solar Power Monitor Initialized!\n");
-        }
-        catch(...){
+        } catch(...) {
+            solar_monitor_initialized = false;
             t.debug_print("ERROR initializing Solar Power Monitor!\n");
             error_count++;
         }
-        t.debug_print("Hardware fully initialized!\n");
-    }
-    catch(...){
+    } catch(...){
         t.debug_print("ERROR Initializing Hardware: \n");
         error_count++;
     }
+
 }
 
+// Status getter implementations
+bool pysquared::is_lidar_ready() const {
+    return lidar_initialized;
+}
+
+bool pysquared::is_led_driver_ready() const {
+    return led_driver_initialized;
+}
+
+bool pysquared::is_adc_ready() const {
+    return adc_initialized;
+}
+
+bool pysquared::is_battery_monitor_ready() const {
+    return battery_monitor_initialized;
+}
+
+bool pysquared::is_solar_monitor_ready() const {
+    return solar_monitor_initialized;
+}
+
+// Wrapper implementations
+float pysquared::getLidarDistance() {
+    if (!lidar_initialized) {
+        t.debug_print("WARNING: Attempt to use uninitialized LiDAR\n");
+        return -1.0f;
+    }
+    return lidar.getDistance();
+}
+
+void pysquared::configureLEDs() {  // Changed return type from bool to void
+    if (!led_driver_initialized) {
+        t.debug_print("WARNING: Attempt to use uninitialized LED Driver\n");
+        return;
+    }
+    led_driver.configure();
+}
+
+float pysquared::getThermocoupleTemp() {
+    if (!adc_initialized) {
+        t.debug_print("WARNING: Attempt to use uninitialized ADC\n");
+        return -999.0f;
+    }
+    return thermocouple_temp();
+}
+
+float pysquared::getBatteryBusVoltage() {
+    if (!battery_monitor_initialized) {
+        t.debug_print("WARNING: Attempt to use uninitialized Battery Monitor\n");
+        return -1.0f;
+    }
+    return battery_power.readBusVoltage();
+}
+
+float pysquared::getBatteryShuntVoltage() {
+    if (!battery_monitor_initialized) {
+        t.debug_print("WARNING: Attempt to use uninitialized Battery Monitor\n");
+        return -1.0f;
+    }
+    return battery_power.readShuntVoltage();
+}
+
+float pysquared::getBatteryCurrent() {
+    if (!battery_monitor_initialized) {
+        t.debug_print("WARNING: Attempt to use uninitialized Battery Monitor\n");
+        return -1.0f;
+    }
+    return battery_power.readCurrent();
+}
+
+float pysquared::getSolarBusVoltage() {
+    if (!solar_monitor_initialized) {
+        t.debug_print("WARNING: Attempt to use uninitialized Solar Monitor\n");
+        return -1.0f;
+    }
+    return solar_power.readBusVoltage();
+}
+
+float pysquared::getSolarShuntVoltage() {
+    if (!solar_monitor_initialized) {
+        t.debug_print("WARNING: Attempt to use uninitialized Solar Monitor\n");
+        return -1.0f;
+    }
+    return solar_power.readShuntVoltage();
+}
+
+float pysquared::getSolarCurrent() {
+    if (!solar_monitor_initialized) {
+        t.debug_print("WARNING: Attempt to use uninitialized Solar Monitor\n");
+        return -1.0f;
+    }
+    return solar_power.readCurrent();
+}
+
+// Initialize the flash memory
 void pysquared::flash_init(){
     try{
         uint8_t data[1u<<8];

@@ -138,7 +138,7 @@ bool executeBurnSequence(pysquared& satellite, satellite_functions& functions,
 
 void runMainLoop(pysquared& satellite, satellite_functions& functions, 
                 tools& t, neopixel& neo) {
-    uint8_t stuff[] = {0x05};
+    // uint8_t stuff[] = {0x05};
     while (true) {
         watchdog_update();
         // satellite.can_bus_send(stuff);
