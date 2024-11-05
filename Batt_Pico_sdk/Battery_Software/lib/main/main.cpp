@@ -179,11 +179,11 @@ void low_power_operations(tools t, neopixel neo, satellite_functions functions) 
     t.debug_print("Satellite is in low power mode!\n");
     neo.put_pixel(neo.urgb_u32(LED_RED.r, LED_RED.g, LED_RED.b));
     functions.c.flight_computer_on();
-    functions.c.uart_receive_handler();
+    functions.c.process_can_messages();  // Changed from uart_receive_handler
     
     for (int i = 0; i < 9; i++) {
         t.safe_sleep(SLEEP_INTERVAL_MS);
-        functions.c.uart_receive_handler();
+        functions.c.process_can_messages();  // Changed from uart_receive_handler
     }
     
     t.safe_sleep(SLEEP_INTERVAL_MS);

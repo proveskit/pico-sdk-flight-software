@@ -899,3 +899,129 @@ bool pysquared::charging(bool state){
 }
 
 int pysquared::num_error(){return error_count;}
+
+
+
+
+// CAN Bus Stuff
+
+void pysquared::process_can_messages() {
+    t.debug_print("Checking for CAN messages...\n");
+    CANMessage msg;
+    if (can_bus.receiveCANMessage(msg)) {  // Changed to use receiveCANMessage
+        handle_can_message(msg.id, msg.data, msg.length);
+    }
+}
+
+void pysquared::handle_can_message(uint16_t id, const uint8_t* data, uint8_t length) {
+    uint16_t response_id = id + 0x200;  // Response ID is command ID + 0x200
+    uint8_t response[8];
+    uint8_t response_length = 0;
+
+    switch (id) {
+        case CAN_ID_GET_TEMPERATURES: {
+            send_temperature_data();
+            break;
+        }
+        
+        case CAN_ID_GET_POWER: {
+            send_power_metrics();
+            break;
+        }
+        
+        case CAN_ID_GET_ERRORS: {
+            send_error_metrics();
+            break;
+        }
+        
+        case CAN_ID_TOGGLE_FACES: {
+            if (faces_on_value) {
+                all_faces_off();
+            } else {
+                all_faces_on();
+            }
+            response[0] = faces_on_value ? 1 : 0;
+            send_can_response(response_id, response, 1);
+            break;
+        }
+        
+        case CAN_ID_RESET_BUS: {
+            bus_reset();
+            response[0] = 1;  // Acknowledge
+            send_can_response(response_id, response, 1);
+            break;
+        }
+        
+        case CAN_ID_TOGGLE_CAMERA: {
+            if (camera_on_value) {
+                camera_off();
+            } else {
+                camera_on();
+            }
+            response[0] = camera_on_value ? 1 : 0;
+            send_can_response(response_id, response, 1);
+            break;
+        }
+        
+        // ... handle other commands ...
+    }
+}
+
+void pysquared::send_temperature_data() {
+    uint8_t response[8];
+    float thermo = thermocouple_temp();
+    float board = board_temp();
+    
+    memcpy(response, &thermo, 4);
+    memcpy(response + 4, &board, 4);
+    
+    send_can_response(CAN_ID_GET_TEMPERATURES + 0x200, response, 8);
+}
+
+void pysquared::send_power_metrics() {
+    uint8_t response[10];
+    
+    float batt_v = battery_voltage();
+    float draw_i = draw_current();
+    float charge_v = charge_voltage();
+    float charge_i = charge_current();
+    bool charging = is_charging();
+    
+    memcpy(response, &batt_v, 4);
+    memcpy(response + 4, &draw_i, 4);
+    memcpy(response + 8, &charge_v, 4);
+    memcpy(response + 12, &charge_i, 4);
+    response[16] = charging ? 1 : 0;
+    
+    send_can_response(CAN_ID_GET_POWER + 0x200, response, 17);
+}
+
+void pysquared::send_error_metrics() {
+    uint8_t response[5];
+    uint32_t err_count = error_count;
+    memcpy(response, &err_count, 4);
+    response[4] = trust_memory ? 1 : 0;
+    
+    send_can_response(CAN_ID_GET_ERRORS + 0x200, response, 5);
+}
+
+void pysquared::pack_float(float value, uint8_t* buffer) {
+    // Pack float as 16-bit fixed point (2 decimal places)
+    int16_t fixed_point = (int16_t)(value * 100);
+    memcpy(buffer, &fixed_point, 2);
+}
+
+float pysquared::unpack_float(const uint8_t* buffer) {
+    // Unpack 16-bit fixed point to float
+    int16_t fixed_point;
+    memcpy(&fixed_point, buffer, 2);
+    return fixed_point / 100.0f;
+}
+
+bool pysquared::send_can_response(uint16_t response_id, const uint8_t* data, uint8_t length) {
+    CANMessage response;
+    response.id = response_id;
+    response.length = length;
+    memcpy(response.data, data, length);
+    return can_bus.sendCANMessage(response);
+}
