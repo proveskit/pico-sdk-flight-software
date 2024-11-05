@@ -34,3 +34,4 @@
 # Build directories
 /build/
 /Build/
+.DS_Store
