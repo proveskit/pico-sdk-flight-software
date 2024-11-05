@@ -47,7 +47,16 @@ void tools::safe_sleep(uint32_t ms) {
         watchdog_update();
         ms -= sleep_time;
         if (debug) {
-            debug_print("Watchdog updated during sleep");
+            debug_print("Watchdog updated during sleep...\n");
         }
     }
+}
+
+void tools::sleep_until_rtc(uint32_t wake_time_seconds) {
+    if (debug) {
+        debug_print("Preparing for RTC-based deep sleep\n");
+    }
+    
+    debug_print("RTC deep sleep not yet implemented\n");
+    safe_sleep(wake_time_seconds * 1000);  // Fall back to regular sleep
 }

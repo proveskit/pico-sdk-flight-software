@@ -151,9 +151,9 @@ void satellite_functions::short_hybernate() {
 
 void satellite_functions::long_hybernate() {
     t.debug_print("Long hybernation starting!\n");
-    for (int i = 0; i < 100; i++) {
-        t.safe_sleep(4000);
-    }
+    // Sleep for ~400 seconds (previous was 100 * 4000ms = 400s)
+    uint32_t wake_time = /* TODO: Get current RTC time */ + 400;
+    t.sleep_until_rtc(wake_time);
 }
 
 void satellite_functions::handle_errors(){
