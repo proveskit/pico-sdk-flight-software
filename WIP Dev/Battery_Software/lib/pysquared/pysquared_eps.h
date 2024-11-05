@@ -1,5 +1,5 @@
-#ifndef _PYSQUARED_H
-#define _PYSQUARED_H
+#ifndef _PYSQUARED_EPS_H
+#define _PYSQUARED_EPS_H
 
 #include <stdio.h>
 #include <neopixel/neopixel.h>
@@ -13,6 +13,8 @@
 #include "hardware/gpio.h"
 #include "hardware/i2c.h"
 #include "hardware/pio.h"
+#include <string>
+#include <iostream>
 
 class pysquared{
 public:
@@ -40,11 +42,15 @@ public:
     void check_reboot();
     void all_faces_on();
     void all_faces_off();
+    void debug_print(string statement)
     void heater_on();
     void heater_off();
     void exception_handler();
     void can_send(uint16_t id, char * message);
     void can_handler();
+    void __init__();
+    void RGB();
+    void RGB(uint32 value);
 
     uint8_t get_power_mode();
     float get_thermocouple_temp();

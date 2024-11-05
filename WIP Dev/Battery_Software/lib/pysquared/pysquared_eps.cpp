@@ -1,4 +1,4 @@
-#include "pysquared.h"
+#include "pysquared_eps.h"
                                                       //instantiate tools class in pysquared
 pysquared::pysquared(neopixel neo) : 
 battery_power(i2c0, 0x40), solar_power(i2c0, 0x44), internal_temp(i2c0, 0x4f), led_driver(i2c0, 0x56), i2c_mux(i2c0,0x77),
