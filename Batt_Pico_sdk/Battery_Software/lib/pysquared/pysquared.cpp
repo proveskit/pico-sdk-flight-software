@@ -63,8 +63,8 @@ pysquared::pysquared(neopixel neo) :
             UART init
         */
         uart_init(uart0,2400);
-        gpio_set_function(tx_pin, GPIO_FUNC_UART);
-        gpio_set_function(rx_pin, GPIO_FUNC_UART);
+        gpio_set_function(uart_tx, GPIO_FUNC_UART);
+        gpio_set_function(uart_rx, GPIO_FUNC_UART);
         uart_set_baudrate(uart0,115200);
         uart_set_hw_flow(uart0, false, false);
         uart_set_format(uart0, 8, 1, UART_PARITY_NONE);
@@ -77,10 +77,10 @@ pysquared::pysquared(neopixel neo) :
         gpio_set_function(spi0_miso_pin, GPIO_FUNC_SPI);
         gpio_set_function(spi0_sck_pin, GPIO_FUNC_SPI);
         gpio_set_function(spi0_mosi_pin, GPIO_FUNC_SPI);
-        spi_init(spi1, 500 * 1000);
-        gpio_set_function(spi1_miso_pin, GPIO_FUNC_SPI);
-        gpio_set_function(spi1_sck_pin, GPIO_FUNC_SPI);
-        gpio_set_function(spi1_mosi_pin, GPIO_FUNC_SPI);
+        //spi_init(spi1, 500 * 1000);
+        //gpio_set_function(spi1_miso_pin, GPIO_FUNC_SPI);
+        //gpio_set_function(spi1_sck_pin, GPIO_FUNC_SPI);
+        //gpio_set_function(spi1_mosi_pin, GPIO_FUNC_SPI);
         t.debug_print("SPI Bus Initialized!\n");
 
         // LED Driver init

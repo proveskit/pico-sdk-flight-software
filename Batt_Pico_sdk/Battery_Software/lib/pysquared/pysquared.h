@@ -69,8 +69,10 @@ public:
     uint8_t usb_boot_pin=13;    //probably will never need to use
     uint8_t vbus_reset_pin=14;
     uint8_t relay_pin=15;
-    uint8_t spi1_miso_pin=16;   //used for backup RF
-    uint8_t spi1_cs0_pin=17;    //used for backup RF
+    uint8_t uart_tx=16;   //used for backup RF
+    uint8_t uart_rx=17;    //used for backup RF
+    //uint8_t spi1_miso_pin=16;   //used for backup RF
+    //uint8_t spi1_cs0_pin=17;    //used for backup RF
     uint8_t spi1_sck_pin=18;    //used for backup RF
     uint8_t spi1_mosi_pin=19;   //used for backup RF
     uint8_t d0_pin=20;         
