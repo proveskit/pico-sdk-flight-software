@@ -978,7 +978,8 @@ void pysquared::send_temperature_data() {
 }
 
 void pysquared::send_power_metrics() {
-    uint8_t response[10];
+    // Increase buffer size to accommodate all data (17 bytes needed)
+    uint8_t response[20];  // Increased from 10 to 20 for safety
     
     float batt_v = battery_voltage();
     float draw_i = draw_current();
@@ -986,13 +987,31 @@ void pysquared::send_power_metrics() {
     float charge_i = charge_current();
     bool charging = is_charging();
     
-    memcpy(response, &batt_v, 4);
-    memcpy(response + 4, &draw_i, 4);
-    memcpy(response + 8, &charge_v, 4);
-    memcpy(response + 12, &charge_i, 4);
-    response[16] = charging ? 1 : 0;
+    // Pack all values sequentially into the buffer
+    uint32_t offset = 0;
     
-    send_can_response(CAN_ID_GET_POWER + 0x200, response, 17);
+    // Battery voltage (4 bytes)
+    memcpy(response + offset, &batt_v, sizeof(float));
+    offset += sizeof(float);
+    
+    // Draw current (4 bytes)
+    memcpy(response + offset, &draw_i, sizeof(float));
+    offset += sizeof(float);
+    
+    // Charge voltage (4 bytes)
+    memcpy(response + offset, &charge_v, sizeof(float));
+    offset += sizeof(float);
+    
+    // Charge current (4 bytes)
+    memcpy(response + offset, &charge_i, sizeof(float));
+    offset += sizeof(float);
+    
+    // Charging status (1 byte)
+    response[offset] = charging ? 1 : 0;
+    offset += 1;
+    
+    // Send response with correct length
+    send_can_response(CAN_ID_GET_POWER + 0x200, response, offset);
 }
 
 void pysquared::send_error_metrics() {
@@ -1020,7 +1039,12 @@ float pysquared::unpack_float(const uint8_t* buffer) {
 bool pysquared::send_can_response(uint16_t response_id, const uint8_t* data, uint8_t length) {
     CANMessage response;
     response.id = response_id;
-    response.length = length;
-    memcpy(response.data, data, length);
+    
+    // Ensure we don't exceed the CANMessage data buffer size
+    response.length = (length > sizeof(response.data)) ? sizeof(response.data) : length;
+    
+    // Safely copy data
+    memcpy(response.data, data, response.length);
+    
     return can_bus.sendCANMessage(response);
 }
