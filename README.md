@@ -11,7 +11,7 @@ This is a separate repo for software developed using the Pico SDK.
 - ARM GCC Toolchain
 
 ## Build Script Usage
-The project includes a `build.sh` script that simplifies the build process. The script supports several options:
+The project includes a `big_build.sh` script that simplifies the build process. The script supports several options:
 
 ```bash
 ./build.sh [-j jobs] [-n output_name] [-c] [-v] [-h]
@@ -24,7 +24,7 @@ Options:
  -h: Show help message
 
 Example:
- ./build.sh -j8 -n battery_firm_v1.0 -v
+ ./big_build.sh -j8 -n battery_firm_v1.0 -v
 ```
 
 ## Build Process Overview
@@ -61,5 +61,5 @@ Batt_Pico_sdk/
 ## Version Control
 The script automatically includes timestamps in backup files and can handle version numbering through the output name parameter. It's recommended to use semantic versioning in the output name:
 ```bash
-./build.sh -n battery_firm_v1.0.0
+./big_build.sh -n battery_firm_v1.0.0
 ```
