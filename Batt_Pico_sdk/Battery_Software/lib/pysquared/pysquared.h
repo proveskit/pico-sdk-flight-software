@@ -41,12 +41,6 @@ static const uint16_t CAN_ID_RESET_FC        = 0x107;
 static const uint16_t CAN_ID_BURN_COMPLETE   = 0x108;
 static const uint16_t CAN_ID_RESET_MCU       = 0x109;
 
-struct CANMessage {
-    uint16_t id;
-    uint8_t data[8];
-    uint8_t length;
-};
-
 
 class pysquared{
 private:
