@@ -141,8 +141,8 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
     uint8_t stuff[] = {0x05};
     while (true) {
         watchdog_update();
-        satellite.can_bus_send(stuff);
-        satellite.can_bus_listen();
+        // satellite.can_bus_send(stuff);
+        // satellite.can_bus_listen();
         
         switch (satellite.power_mode()) {
             case 0:
