@@ -28,8 +28,8 @@ pysquared::pysquared(neopixel neo) :
         gpio_set_dir(vbus_reset_pin, GPIO_OUT);
         gpio_init(relay_pin);
         gpio_set_dir(relay_pin, GPIO_OUT);
-        gpio_init(spi1_cs0_pin);
-        gpio_set_dir(spi1_cs0_pin, GPIO_OUT);
+        //gpio_init(spi1_cs0_pin);
+        //gpio_set_dir(spi1_cs0_pin, GPIO_OUT);
         gpio_init(d0_pin);
         gpio_set_dir(d0_pin, GPIO_IN);
         gpio_init(is_charge_pin);
