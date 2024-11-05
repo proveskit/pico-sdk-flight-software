@@ -29,17 +29,6 @@ extern uint32_t ADDR_PERSISTENT[];
 #define FLASH_TARGET_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE + FLASH_PAGE_SIZE)
 #define AIRCR_Register (*((volatile uint32_t*)(PPB_BASE + 0x0ED0C)))
 
-// Add CAN message IDs
-#define CAN_ID_GET_TEMPERATURES 0x100
-#define CAN_ID_GET_POWER       0x101
-#define CAN_ID_GET_ERRORS      0x102
-#define CAN_ID_TOGGLE_FACES    0x103
-#define CAN_ID_RESET_BUS       0x104
-#define CAN_ID_TOGGLE_CAMERA   0x105
-#define CAN_ID_USE_AUX_RADIO   0x106
-#define CAN_ID_RESET_FC        0x107
-#define CAN_ID_BURN_COMPLETE   0x108
-#define CAN_ID_RESET_MCU       0x109
 
 class pysquared{
 private:
@@ -140,13 +129,27 @@ public:
     void flash_init();
 
     void can_bus_init();
-    bool can_bus_send(uint8_t *data);
-    void can_bus_loopback();
-    void can_bus_listen();
 
+
+    // CAN-related methods (ensure these appear only once)
     void process_can_messages();
     void handle_can_message(uint16_t id, const uint8_t* data, uint8_t length);
+    void send_temperature_data();
+    void send_power_metrics();
+    void send_error_metrics();
     bool send_can_response(uint16_t response_id, const uint8_t* data, uint8_t length);
+
+    // CAN message IDs (define these at the top of the file, outside the class)
+    static const uint16_t CAN_ID_GET_TEMPERATURES = 0x100;
+    static const uint16_t CAN_ID_GET_POWER       = 0x101;
+    static const uint16_t CAN_ID_GET_ERRORS      = 0x102;
+    static const uint16_t CAN_ID_TOGGLE_FACES    = 0x103;
+    static const uint16_t CAN_ID_RESET_BUS       = 0x104;
+    static const uint16_t CAN_ID_TOGGLE_CAMERA   = 0x105;
+    static const uint16_t CAN_ID_USE_AUX_RADIO   = 0x106;
+    static const uint16_t CAN_ID_RESET_FC        = 0x107;
+    static const uint16_t CAN_ID_BURN_COMPLETE   = 0x108;
+    static const uint16_t CAN_ID_RESET_MCU       = 0x109;
 
     struct CANMessage {
         uint16_t id;

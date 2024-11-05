@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <queue>
 #include <cstring>
+#include <climits>  // Added for UINT_MAX
 
 // MCP25625 Register Addresses
 #define MCP_CANCTRL      0x0F
