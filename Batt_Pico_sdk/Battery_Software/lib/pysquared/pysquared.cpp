@@ -909,7 +909,9 @@ void pysquared::process_can_messages() {
     t.debug_print("Checking for CAN messages...\n");
     CANMessage msg;
     if (can_bus.receiveCANMessage(msg)) {  // Changed to use receiveCANMessage
+        t.debug_print("Received CAN message: ID=" + to_string(msg.id) + ", Length=" + to_string(msg.length) + "\n");
         handle_can_message(msg.id, msg.data, msg.length);
+        
     }
 }
 
