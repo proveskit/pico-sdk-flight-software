@@ -83,7 +83,7 @@ uint8_t MCP25625::readRegister(uint8_t address) {
 
 void MCP25625::modifyRegister(uint8_t address, uint8_t mask, uint8_t value) {
     gpio_put(cs, 0);
-    uint8_t cmd[4] = {MCP_BITMOD, address, mask, value};
+    uint8_t cmd[4] = {MCP_BIT_MODIFY, address, mask, value};  // Changed from MCP_BITMOD
     spi_write_blocking(spi, cmd, 4);
     gpio_put(cs, 1);
 }
