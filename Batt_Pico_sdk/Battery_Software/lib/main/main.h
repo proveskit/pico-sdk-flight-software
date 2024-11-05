@@ -41,12 +41,19 @@ constexpr uint8_t HEATER_LATCH_BIT = 3;
 constexpr uint8_t VBUS_RESET_BIT = 4;
 constexpr uint8_t PRIOR_BURN_ATTEMPT = 5;
 
-// LED Colors (pre-calculated RGB values)
-constexpr uint32_t LED_GREEN = 0x00FF00;      // Green
-constexpr uint32_t LED_RED = 0xFF0000;        // Red
-constexpr uint32_t LED_YELLOW = 0xFFFF00;     // Yellow
-constexpr uint32_t LED_PURPLE = 0xFF00FF;     // Purple
-constexpr uint32_t LED_OFF = 0x000000;        // Off
+// Instead of uint32_t, define separate RGB values
+struct RGB {
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+};
+
+// LED Colors as RGB structs
+constexpr RGB LED_GREEN  = {0x00, 0xFF, 0x00};
+constexpr RGB LED_RED    = {0xFF, 0x00, 0x00};
+constexpr RGB LED_YELLOW = {0xFF, 0xFF, 0x00};
+constexpr RGB LED_PURPLE = {0xFF, 0x00, 0xFF};
+constexpr RGB LED_OFF    = {0x00, 0x00, 0x00};
 
 using namespace std;
 
