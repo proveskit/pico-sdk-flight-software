@@ -596,6 +596,7 @@ bool pysquared::uart_send(const char *msg){
 }
 
 void pysquared::uart_receive_handler(){
+    t.debug_print("Checking for UART messages...\n");
     int counter = 0;
     uint8_t num;
     while(uart_is_readable(uart0)) {
