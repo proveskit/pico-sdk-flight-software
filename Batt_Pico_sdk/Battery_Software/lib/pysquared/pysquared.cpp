@@ -916,7 +916,6 @@ void pysquared::process_can_messages() {
 void pysquared::handle_can_message(uint16_t id, const uint8_t* data, uint8_t length) {
     uint16_t response_id = id + 0x200;  // Response ID is command ID + 0x200
     uint8_t response[8];
-    uint8_t response_length = 0;
 
     switch (id) {
         case CAN_ID_GET_TEMPERATURES: {

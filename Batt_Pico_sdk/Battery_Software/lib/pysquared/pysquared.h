@@ -140,8 +140,11 @@ public:
     void flash_read(uint8_t *data, uint8_t page);
     void flash_init();
 
-    // CAN-related methods (consolidated)
+    // CAN-related methods - add these declarations
     void can_bus_init();
+    bool can_bus_send(uint8_t *data);  // Added
+    void can_bus_loopback();           // Added
+    void can_bus_listen();             // Added
     void process_can_messages();
     void send_temperature_data();
     void send_power_metrics();
