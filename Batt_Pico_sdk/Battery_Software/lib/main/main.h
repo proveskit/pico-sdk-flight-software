@@ -1,11 +1,19 @@
 #ifndef _MAIN_H
 #define _MAIN_H
+
+//Modified with Claude 3.5 Sonnet
+
+// Standard library includes
 #include <iostream>
 #include <stdio.h>
+
+// Custom library includes
 #include <neopixel/neopixel.h>
 #include <tools/tools.h>
 #include <pysquared/pysquared.h>
 #include <functions/functions.h>
+
+// Hardware includes
 #include "hardware/pio.h"
 #include "hardware/i2c.h"
 #include "hardware/spi.h"
@@ -15,25 +23,58 @@
 #include "hardware/flash.h"
 #include "pico/stdlib.h"
 
+// Time constants (in milliseconds)
+constexpr uint WATCHDOG_TIMEOUT_MS = 5000;    // 5 seconds
+constexpr uint LOITER_TIME_SECONDS = 270;     // 4.5 minutes
+constexpr uint SLEEP_INTERVAL_MS = 1000;      // 1 second
+constexpr uint BLINK_INTERVAL_MS = 500;       // 0.5 seconds
 
-#define status_reg 1
-#define brownout_bit 0
-#define watchdog_bit 1
-#define burned_bit 2
-#define heater_latch_bit 3
-#define vbus_reset_bit 4
-#define prior_burn_attempt 5
+// Register addresses
+constexpr uint8_t STATUS_REG = 1;
+constexpr uint8_t BOOT_REG = 2;
 
-#define boot_reg 2
+// Status register bit positions
+constexpr uint8_t BROWNOUT_BIT = 0;
+constexpr uint8_t WATCHDOG_BIT = 1;
+constexpr uint8_t BURNED_BIT = 2;
+constexpr uint8_t HEATER_LATCH_BIT = 3;
+constexpr uint8_t VBUS_RESET_BIT = 4;
+constexpr uint8_t PRIOR_BURN_ATTEMPT = 5;
+
+// LED Colors (pre-calculated RGB values)
+constexpr uint32_t LED_GREEN = 0x00FF00;      // Green
+constexpr uint32_t LED_RED = 0xFF0000;        // Red
+constexpr uint32_t LED_YELLOW = 0xFFFF00;     // Yellow
+constexpr uint32_t LED_PURPLE = 0xFF00FF;     // Purple
+constexpr uint32_t LED_OFF = 0x000000;        // Off
 
 using namespace std;
 
+// Struct for burn status tracking
+struct BurnStatus {
+    bool has_burned_before;
+    bool previous_brownout;
+};
+
+// Function declarations
 void main_program(neopixel neo);
 
+// Initialization functions
+bool initializeWatchdog(tools& t);
+void handleFlashInitialization(pysquared& satellite, tools& t, bool watchdog_reset, uint8_t* data);
+BurnStatus checkBurnStatus(pysquared& satellite, tools& t, uint8_t* data);
+void updateBootCount(pysquared& satellite, tools& t, uint8_t* data);
+
+// Operation functions
+bool executeBurnSequence(pysquared& satellite, satellite_functions& functions, 
+                        tools& t, neopixel& neo, bool has_burned_before);
+void runMainLoop(pysquared& satellite, satellite_functions& functions, 
+                tools& t, neopixel& neo);
+
+// Power mode operation functions
 void critical_power_operations(tools t, satellite_functions functions);
 void low_power_operations(tools t, neopixel neo, satellite_functions functions);
 void normal_power_operations(tools t, neopixel neo, satellite_functions functions);
 void maximum_power_operations(tools t, neopixel neo, satellite_functions functions);
-
 
 #endif
