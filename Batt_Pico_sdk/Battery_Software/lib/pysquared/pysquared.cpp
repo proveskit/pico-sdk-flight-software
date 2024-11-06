@@ -128,6 +128,16 @@ pysquared::pysquared(neopixel neo) :
             t.debug_print("ERROR initializing Solar Power Monitor!\n");
             error_count++;
         }
+
+        // CAN Bus init
+        try {
+            can_bus.begin();
+            t.debug_print("CAN Bus Initialized!\n");
+        } catch(...) {
+            t.debug_print("ERROR initializing CAN Bus!\n");
+            error_count++;
+        }
+        
     } catch(...){
         t.debug_print("ERROR Initializing Hardware: \n");
         error_count++;
