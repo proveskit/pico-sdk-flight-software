@@ -55,9 +55,9 @@
 // Control and Status Registers
 #define MCP_CANSTAT  0x0E
 #define MCP_CANCTRL  0x0F
-#define MCP_CNF1     0x2A
-#define MCP_CNF2     0x29
-#define MCP_CNF3     0x28
+#define MCP_CNF1     0x00
+#define MCP_CNF2     0xF0
+#define MCP_CNF3     0x86
 #define MCP_CANINTE  0x2B
 #define MCP_CANINTF  0x2C
 #define MCP_EFLG     0x2D
