@@ -169,21 +169,12 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
 
 void runMainLoop(pysquared& satellite, satellite_functions& functions, 
                 tools& t, neopixel& neo) {
-    CommandSystem cmd_system(satellite, functions, t, neo);
-    
-    // Wait for USB connection before starting
-    while (!stdio_usb_connected()) {
-        sleep_ms(100);
-    }
-    
-    printf("\nPySqaured Test Console\n");
-    printf("Type 'help' for available commands\n");
-    printf("> ");
-    fflush(stdout);
+    // Initialize command system
+    t.init_command_system();
 
     while (true) {
         watchdog_update();
-        cmd_system.process_input();
+        t.process_input(satellite, functions, neo);
         
         // Optional: Still allow normal power mode operations
         if (satellite.power_mode() >= 2) {
@@ -191,7 +182,7 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
             functions.c.uart_receive_handler();
         }
         
-        sleep_ms(10);  // Small delay to prevent excessive CPU usage
+        sleep_ms(10);
     }
 }
 
