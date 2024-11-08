@@ -12,6 +12,7 @@
 #include <device_drivers/ADS1015.h>
 #include <device_drivers/MCP25625.h>
 #include <device_drivers/VL6180.h>
+#include <device_drivers/mcp2515/MCP2515.h>
 #include "pico/stdlib.h"
 #include "hardware/timer.h"
 #include "hardware/pwm.h"
@@ -68,7 +69,7 @@ public:
     VL6180 lidar;
     PCA9685 led_driver;
     ADS1015 adc;
-    MCP25625 can_bus;
+    MCP2515 can_bus;
 
     uint8_t nvm_memory[1u<<8];
     uint8_t tx_pin=0;       //rarely used

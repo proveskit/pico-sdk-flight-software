@@ -802,6 +802,7 @@ void pysquared::exec_uart_command(char commanded){
 }
 
 uint8_t pysquared::power_mode() {return pwr_mode;}
+
 float pysquared::thermocouple_temp(){
     try{
         float val=static_cast< float >(adc.readSingleEnded(1))*2.048/2048;

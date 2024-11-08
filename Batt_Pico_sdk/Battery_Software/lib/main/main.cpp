@@ -165,6 +165,9 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
 void critical_power_operations(tools t, satellite_functions functions) {
     t.debug_print("Satellite is in critical power mode!\n");
     functions.c.flight_computer_on();
+    // NOTE: in Critical Power we turn off the watchdog here
+    functions.c.five_volt_disable();
+
     functions.c.uart_receive_handler();
     sleep_ms(SLEEP_INTERVAL_MS);
     functions.c.uart_receive_handler();
@@ -179,6 +182,7 @@ void low_power_operations(tools t, neopixel neo, satellite_functions functions) 
     t.debug_print("Satellite is in low power mode!\n");
     neo.put_pixel(neo.urgb_u32(LED_RED.r, LED_RED.g, LED_RED.b));
     functions.c.flight_computer_on();
+    functions.c.five_volt_enable();
     functions.c.process_can_messages();  // Changed from uart_receive_handler
     
     for (int i = 0; i < 9; i++) {
