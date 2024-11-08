@@ -10,7 +10,6 @@
 #include <device_drivers/PCT2075.h>
 #include <device_drivers/PCA9685.h>
 #include <device_drivers/ADS1015.h>
-#include <device_drivers/MCP25625.h>
 #include <device_drivers/VL6180.h>
 #include <device_drivers/mcp2515/MCP2515.h>
 #include "pico/stdlib.h"

@@ -131,7 +131,20 @@ pysquared::pysquared(neopixel neo) :
 
         // CAN Bus init
         try {
-            can_bus.begin();
+            if (can_bus.reset() != MCP2515::ERROR_OK) {
+                printf("Error resetting MCP2515\n");
+            }
+
+            // Configure the bit rate (e.g., 500kbps with 16MHz oscillator)
+            if (can_bus.setBitrate(CAN_500KBPS, MCP_16MHZ) != MCP2515::ERROR_OK) {
+                printf("Error setting bitrate\n");
+            }
+
+            // Set normal mode
+            if (can_bus.setNormalMode() != MCP2515::ERROR_OK) {
+                printf("Error setting normal mode\n");
+            }
+
             t.debug_print("CAN Bus Initialized!\n");
         } catch(...) {
             t.debug_print("ERROR initializing CAN Bus!\n");
@@ -610,18 +623,6 @@ void pysquared::burn_off(){
     catch(...){
         t.debug_print("ERROR while turning off the Burn Wire!\n");
         gpio_put(relay_pin, false);
-        error_count++;
-    }
-}
-
-void pysquared::can_bus_init(){
-    try{
-        if(can_bus.begin()){
-            t.debug_print("intialized successfully!\n");
-        }
-    }
-    catch(...){
-        t.debug_print("ERROR while configuring can bus!\n");
         error_count++;
     }
 }
