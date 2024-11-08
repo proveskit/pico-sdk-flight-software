@@ -136,9 +136,14 @@ bool executeBurnSequence(pysquared& satellite, satellite_functions& functions,
     return false;
 }
 
+/* USUAL MAIN LOOP
+
 void runMainLoop(pysquared& satellite, satellite_functions& functions, 
                 tools& t, neopixel& neo) {
     // uint8_t stuff[] = {0x05};
+
+    keyboard_test();
+
     while (true) {
         watchdog_update();
         // satellite.can_bus_send(stuff);
@@ -159,6 +164,34 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
                 break;
         }
         satellite.check_reboot();
+    }
+}*/
+
+void runMainLoop(pysquared& satellite, satellite_functions& functions, 
+                tools& t, neopixel& neo) {
+    CommandSystem cmd_system(satellite, functions, t, neo);
+    
+    // Wait for USB connection before starting
+    while (!stdio_usb_connected()) {
+        sleep_ms(100);
+    }
+    
+    printf("\nPySqaured Test Console\n");
+    printf("Type 'help' for available commands\n");
+    printf("> ");
+    fflush(stdout);
+
+    while (true) {
+        watchdog_update();
+        cmd_system.process_input();
+        
+        // Optional: Still allow normal power mode operations
+        if (satellite.power_mode() >= 2) {
+            functions.battery_manager();
+            functions.c.uart_receive_handler();
+        }
+        
+        sleep_ms(10);  // Small delay to prevent excessive CPU usage
     }
 }
 
