@@ -180,6 +180,7 @@ void test_can(pysquared satellite, neopixel neo, satellite_functions functions) 
     */
    while (true) {
        functions.c.uart_receive_handler();
+       watchdog_update();
        sleep_ms(1000);
    }
 }
