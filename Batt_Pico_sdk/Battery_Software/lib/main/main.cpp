@@ -136,9 +136,14 @@ bool executeBurnSequence(pysquared& satellite, satellite_functions& functions,
     return false;
 }
 
+/* USUAL MAIN LOOP
+
 void runMainLoop(pysquared& satellite, satellite_functions& functions, 
                 tools& t, neopixel& neo) {
     // uint8_t stuff[] = {0x05};
+
+    keyboard_test();
+
     while (true) {
         watchdog_update();
         // satellite.can_bus_send(stuff);
@@ -159,6 +164,25 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
                 break;
         }
         satellite.check_reboot();
+    }
+}*/
+
+void runMainLoop(pysquared& satellite, satellite_functions& functions, 
+                tools& t, neopixel& neo) {
+    // Initialize command system
+    t.init_command_system();
+
+    while (true) {
+        watchdog_update();
+        t.process_input(satellite, functions, neo);
+        
+        // Optional: Still allow normal power mode operations
+        if (satellite.power_mode() >= 2) {
+            functions.battery_manager();
+            functions.c.uart_receive_handler();
+        }
+        
+        sleep_ms(10);
     }
 }
 
