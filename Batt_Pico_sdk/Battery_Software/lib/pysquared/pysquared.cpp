@@ -65,7 +65,7 @@ pysquared::pysquared(neopixel neo) :
         uart_init(uart0,2400);
         gpio_set_function(uart_tx, GPIO_FUNC_UART);
         gpio_set_function(uart_rx, GPIO_FUNC_UART);
-        uart_set_baudrate(uart0,115200);
+        uart_set_baudrate(uart0,9600);
         uart_set_hw_flow(uart0, false, false);
         uart_set_format(uart0, 8, 1, UART_PARITY_NONE);
         uart_set_fifo_enabled(uart0, false);
