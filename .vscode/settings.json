@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "cstring": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "string": "cpp"
     }
 }

@@ -4,6 +4,8 @@
 #include <iostream>
 #include <stdio.h>
 #include <ctype.h>
+#include <cstring>
+
 #include <neopixel/neopixel.h>
 #include <tools/tools.h>
 #include <device_drivers/INA219.h>
@@ -23,6 +25,7 @@
 #include "hardware/spi.h"
 #include "hardware/uart.h"
 #include "hardware/pio.h"
+
 
 extern uint32_t ADDR_PERSISTENT[];
 #define ADDR_PERSISTENT_BASE_ADDRESS (ADDR_PERSISTENT)
@@ -139,6 +142,8 @@ public:
     void flash_update();
     void flash_read(uint8_t *data, uint8_t page);
     void flash_init();
+
+    bool init_can_bus();  // Add this declaration
 
     // CAN-related methods - add these declarations
     void can_bus_init();
