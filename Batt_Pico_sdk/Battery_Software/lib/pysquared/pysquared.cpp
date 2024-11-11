@@ -65,7 +65,7 @@ pysquared::pysquared(neopixel neo) :
         uart_init(uart0,2400);
         gpio_set_function(uart_tx, GPIO_FUNC_UART);
         gpio_set_function(uart_rx, GPIO_FUNC_UART);
-        uart_set_baudrate(uart0,9600);
+        uart_set_baudrate(uart0,BAUD_RATE);
         uart_set_hw_flow(uart0, false, false);
         uart_set_format(uart0, 8, 1, UART_PARITY_NONE);
         uart_set_fifo_enabled(uart0, false);
@@ -672,18 +672,15 @@ bool pysquared::uart_send(const char *msg) {
         t.debug_print("Invalid UART or message pointer\n");
         return false;
     }
-
+    
     t.debug_print("sending message: " + string(msg) + "\n");
     
-    // Send each character and check for errors
-    while (*msg) {
-        if (uart_is_writable(uart0)) {
-            uart_putc(uart0, *msg++);
-        } else {
-            t.debug_print("UART write timeout\n");
-            return false;
-        }
-    }
+    // Send the entire message as a block
+    int len = strlen(msg);
+    uart_write_blocking(uart0, (const uint8_t*)msg, len);
+    
+    // Send a newline character to terminate the message
+    uart_write_blocking(uart0, (const uint8_t*)"\n", 1);
     
     t.debug_print("Successful send!\n");
     return true;

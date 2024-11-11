@@ -31,6 +31,7 @@ extern uint32_t ADDR_PERSISTENT[];
 #define ADDR_PERSISTENT_BASE_ADDRESS (ADDR_PERSISTENT)
 #define FLASH_TARGET_OFFSET (PICO_FLASH_SIZE_BYTES - FLASH_SECTOR_SIZE + FLASH_PAGE_SIZE)
 #define AIRCR_Register (*((volatile uint32_t*)(PPB_BASE + 0x0ED0C)))
+#define BAUD_RATE 9600
 
 // CAN message IDs (define these at the top of the file, outside the class)
 static const uint16_t CAN_ID_GET_TEMPERATURES = 0x100;
