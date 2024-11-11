@@ -42,9 +42,9 @@ void main_program(neopixel neo) {
         functions.battery_manager();
         t.debug_print("about to enter the main loop!\n");
         
-        // runMainLoop(satellite, functions, t, neo);
+        runMainLoop(satellite, functions, t, neo);
 
-        test_can(satellite, neo, functions);
+        // test_can(satellite, neo, functions);
     }
 }
 
@@ -59,8 +59,7 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
     // uint8_t stuff[] = {0x05};
     while (true) {
         watchdog_update();
-        // satellite.can_bus_send(stuff);
-        // satellite.can_bus_listen();
+        functions.c.uart_receive_handler();
         
         switch (satellite.power_mode()) {
             case 0:
@@ -101,11 +100,11 @@ void low_power_operations(tools t, neopixel neo, satellite_functions functions) 
     neo.put_pixel(neo.urgb_u32(LED_RED.r, LED_RED.g, LED_RED.b));
     functions.c.flight_computer_on();
     functions.c.five_volt_enable();
-    // functions.c.process_can_messages();  // Changed from uart_receive_handler
+    functions.c.uart_receive_handler();
     
     for (int i = 0; i < 9; i++) {
         t.safe_sleep(SLEEP_INTERVAL_MS);
-        // functions.c.process_can_messages();  // Changed from uart_receive_handler
+        functions.c.uart_receive_handler();
     }
     
     t.safe_sleep(SLEEP_INTERVAL_MS);
@@ -181,7 +180,7 @@ void test_can(pysquared satellite, neopixel neo, satellite_functions functions) 
    while (true) {
        functions.c.uart_receive_handler();
        watchdog_update();
-       sleep_ms(1000);
+       sleep_ms(100);
    }
 }
 

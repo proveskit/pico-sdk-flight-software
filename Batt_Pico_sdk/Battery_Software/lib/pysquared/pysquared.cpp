@@ -68,7 +68,7 @@ pysquared::pysquared(neopixel neo) :
         uart_set_baudrate(uart0,BAUD_RATE);
         uart_set_hw_flow(uart0, false, false);
         uart_set_format(uart0, 8, 1, UART_PARITY_NONE);
-        uart_set_fifo_enabled(uart0, false);
+        uart_set_fifo_enabled(uart0, true);
         t.debug_print("UART Bus Initialized!\n");
         /*
             SPI init
@@ -675,12 +675,14 @@ bool pysquared::uart_send(const char *msg) {
     
     t.debug_print("sending message: " + string(msg) + "\n");
     
-    // Send the entire message as a block
-    int len = strlen(msg);
-    uart_write_blocking(uart0, (const uint8_t*)msg, len);
+    // Send ACK character first to indicate ready to send
+    uart_write_blocking(uart0, (const uint8_t*)"<", 1);
     
-    // Send a newline character to terminate the message
-    uart_write_blocking(uart0, (const uint8_t*)"\n", 1);
+    // Send the message
+    uart_write_blocking(uart0, (const uint8_t*)msg, strlen(msg));
+    
+    // Send end marker
+    uart_write_blocking(uart0, (const uint8_t*)">\n", 2);
     
     t.debug_print("Successful send!\n");
     return true;
@@ -721,9 +723,15 @@ void pysquared::uart_receive_handler() {
 }
 
 void pysquared::exec_uart_command(char commanded){
+    // First send an ACK that we received the command
+    uart_write_blocking(uart0, (const uint8_t*)"A", 1);
+
     string message;
     const char *msg;
     t.debug_print("Command #" + to_string(commanded) + " will be executed!\n");
+
+    sleep_ms(10);
+    uart_write_blocking(uart0, (const uint8_t*)"A", 1);
     switch (commanded)
     {
     case 1:
