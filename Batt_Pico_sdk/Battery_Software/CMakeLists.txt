@@ -14,3 +14,5 @@ target_include_directories(vl6180 PUBLIC lib)
 target_include_directories(ads1015 PUBLIC lib)
 target_include_directories(mcp2515 PUBLIC lib)
 target_include_directories(functions PUBLIC lib)
+
+pico_enable_stdio_usb(main 1)

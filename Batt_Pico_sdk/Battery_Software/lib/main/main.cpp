@@ -275,3 +275,107 @@ bool executeBurnSequence(pysquared& satellite, satellite_functions& functions,
     }
     return false;
 }
+
+/* USUAL MAIN LOOP
+
+void runMainLoop(pysquared& satellite, satellite_functions& functions, 
+                tools& t, neopixel& neo) {
+    // uint8_t stuff[] = {0x05};
+
+    keyboard_test();
+
+    while (true) {
+        watchdog_update();
+        // satellite.can_bus_send(stuff);
+        // satellite.can_bus_listen();
+        
+        switch (satellite.power_mode()) {
+            case 0:
+                critical_power_operations(t, functions);
+                break;
+            case 1:
+                low_power_operations(t, neo, functions);
+                break;
+            case 2:
+                normal_power_operations(t, neo, functions);
+                break;
+            case 3:
+                maximum_power_operations(t, neo, functions);
+                break;
+        }
+        satellite.check_reboot();
+    }
+}*/
+
+void runMainLoop(pysquared& satellite, satellite_functions& functions, 
+                tools& t, neopixel& neo) {
+    // Initialize command system
+    t.init_command_system();
+
+    while (true) {
+        watchdog_update();
+        t.process_input(satellite, functions, neo);
+        
+        // Optional: Still allow normal power mode operations
+        if (satellite.power_mode() >= 2) {
+            functions.battery_manager();
+            functions.c.uart_receive_handler();
+        }
+        
+        sleep_ms(10);
+    }
+}
+
+void critical_power_operations(tools t, satellite_functions functions) {
+    t.debug_print("Satellite is in critical power mode!\n");
+    functions.c.flight_computer_on();
+    functions.c.uart_receive_handler();
+    sleep_ms(SLEEP_INTERVAL_MS);
+    functions.c.uart_receive_handler();
+    sleep_ms(SLEEP_INTERVAL_MS);
+    functions.c.flight_computer_off();
+    functions.long_hybernate();
+    functions.battery_manager();
+    watchdog_update();
+}
+
+void low_power_operations(tools t, neopixel neo, satellite_functions functions) {
+    t.debug_print("Satellite is in low power mode!\n");
+    neo.put_pixel(neo.urgb_u32(LED_RED.r, LED_RED.g, LED_RED.b));
+    functions.c.flight_computer_on();
+    functions.c.uart_receive_handler();
+    
+    for (int i = 0; i < 9; i++) {
+        t.safe_sleep(SLEEP_INTERVAL_MS);
+        functions.c.uart_receive_handler();
+    }
+    
+    t.safe_sleep(SLEEP_INTERVAL_MS);
+    functions.c.flight_computer_off();
+    functions.short_hybernate();
+    functions.battery_manager();
+}
+
+void normal_power_operations(tools t, neopixel neo, satellite_functions functions) {
+    t.debug_print("Satellite is in normal power mode!\n");
+    neo.put_pixel(neo.urgb_u32(LED_YELLOW.r, LED_YELLOW.g, LED_YELLOW.b));
+    functions.c.flight_computer_on();
+    functions.c.five_volt_enable();
+    functions.battery_manager();
+    functions.c.uart_receive_handler();
+    t.debug_print("LiDAR Distance: " + to_string(functions.c.lidar.getDistance()) + "mm\n");
+    watchdog_update();
+    t.safe_sleep(SLEEP_INTERVAL_MS);
+}
+
+void maximum_power_operations(tools t, neopixel neo, satellite_functions functions) {
+    t.debug_print("Satellite is in maximum power mode!\n");
+    neo.put_pixel(neo.urgb_u32(LED_GREEN.r, LED_GREEN.g, LED_GREEN.b));
+    functions.c.flight_computer_on();
+    functions.c.five_volt_enable();
+    functions.battery_manager();
+    functions.c.uart_receive_handler();
+    t.debug_print("LiDAR Distance: " + to_string(functions.c.lidar.getDistance()) + "mm\n");
+    watchdog_update();
+    t.safe_sleep(SLEEP_INTERVAL_MS);
+}
