@@ -144,7 +144,7 @@ public:
     void mram_read(uint8_t *data, uint16_t address);
     void mram_init();
     //void flash_update();
-    void can_bus_init();
+    bool init_can_bus();
     bool can_bus_send(uint8_t *data);  // Added
     void can_bus_loopback();           // Added
     void can_bus_listen();             // Added

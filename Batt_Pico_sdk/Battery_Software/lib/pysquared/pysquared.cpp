@@ -134,20 +134,9 @@ pysquared::pysquared(neopixel neo) :
         }
 
         // Initialize CAN bus
-        try {
-            if (!init_can_bus()) {  // Call without parameters since they're class members
-                t.debug_print("[CAN] Initialization failed\n");
-                error_count++;
-            } else {
-                t.debug_print("[CAN] Bus initialized successfully\n");
-            }
-        } catch (const std::exception& e) {
-            t.debug_print("[CAN] Exception during initialization: " + std::string(e.what()) + "\n");
-            error_count++;
-        } catch (...) {
-            t.debug_print("[CAN] Unknown exception during CAN initialization\n");
-            error_count++;
-        }
+        /*
+        BEGONE CAN BUS
+        */
         
     } catch(...){
         t.debug_print("ERROR Initializing Hardware: \n");
