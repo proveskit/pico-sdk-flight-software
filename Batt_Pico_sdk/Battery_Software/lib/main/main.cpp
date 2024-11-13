@@ -87,10 +87,11 @@ void general_operations(tools t, satellite_functions functions) {
     functions.c.five_volt_disable();
     functions.c.flight_computer_on();
 
-    while (true):
+    while (true) {
         functions.c.uart_receive_handler();
         watchdog_update();
         sleep_ms(SLEEP_INTERVAL_MS);
+    }
 
 }
 

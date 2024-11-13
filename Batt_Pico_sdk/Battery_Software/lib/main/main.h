@@ -82,6 +82,7 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
 void test_can(pysquared satellite, neopixel neo, satellite_functions functions);
 
 // Power mode operation functions
+void general_operations(tools t, satellite_functions functions);
 void critical_power_operations(tools t, satellite_functions functions);
 void low_power_operations(tools t, neopixel neo, satellite_functions functions);
 void normal_power_operations(tools t, neopixel neo, satellite_functions functions);
