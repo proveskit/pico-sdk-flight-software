@@ -51,8 +51,8 @@ add_library(ads1015
 )
 
 add_library(mcp2515
-    device_drivers/MCP2515.h 
-    device_drivers/MCP2515.cpp
+    device_drivers/mcp2515/MCP2515.h 
+    device_drivers/mcp2515/MCP2515.cpp
 )
 
 # Library dependencies
