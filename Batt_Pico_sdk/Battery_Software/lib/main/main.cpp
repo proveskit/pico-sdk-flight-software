@@ -59,6 +59,8 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
     // uint8_t stuff[] = {0x05};
     while (true) {
         watchdog_update();
+        general_operations(t, functions);
+        /*
         functions.c.uart_receive_handler();
         
         switch (satellite.power_mode()) {
@@ -75,6 +77,7 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
                 maximum_power_operations(t, neo, functions);
                 break;
         }
+        */
         satellite.check_reboot();
     }
 }
@@ -147,53 +150,6 @@ void maximum_power_operations(tools t, neopixel neo, satellite_functions functio
     t.debug_print("LiDAR Distance: " + to_string(functions.c.lidar.getDistance()) + "mm\n");
     watchdog_update();
     t.safe_sleep(SLEEP_INTERVAL_MS);
-}
-
-/*
-====================
-Test Loops
-====================
-*/
-void test_can(pysquared satellite, neopixel neo, satellite_functions functions) {
-    tools t(true, "[CAN TEST] ");
-    t.debug_print("Starting UART test sequence...\n");
-
-    functions.c.flight_computer_on();
-    
-    neo.put_pixel(neo.urgb_u32(LED_YELLOW.r, LED_YELLOW.g, LED_YELLOW.b));
-    
-    /*
-    // Prepare the CAN message - using 8 bytes max for standard CAN
-    struct can_frame frame;
-    frame.can_id = 0x123;    // Arbitrary CAN ID
-    frame.can_dlc = 7;       // Length of "Testing"
-    
-    // Message that fits in 8 bytes
-    const char* message = "Testing";
-    memcpy(frame.data, message, frame.can_dlc);
-    
-    t.debug_print("Beginning transmission loop...\n");
-    
-    while (true) {
-        MCP2515::ERROR result = satellite.can_bus.sendMessage(&frame);
-        
-        if (result == MCP2515::ERROR_OK) {
-            t.debug_print("CAN message sent successfully\n");
-            neo.put_pixel(neo.urgb_u32(LED_GREEN.r, LED_GREEN.g, LED_GREEN.b));
-        } else {
-            t.debug_print("Error sending message: " + std::to_string(static_cast<int>(result)) + "\n");
-            neo.put_pixel(neo.urgb_u32(LED_RED.r, LED_RED.g, LED_RED.b));
-        }
-        
-        sleep_ms(1000);  // Wait for 1 second before next transmission
-        watchdog_update();  // Keep the watchdog happy
-    }
-    */
-   while (true) {
-       functions.c.uart_receive_handler();
-       watchdog_update();
-       sleep_ms(100);
-   }
 }
 
 
