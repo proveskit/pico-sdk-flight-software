@@ -110,7 +110,7 @@ bool satellite_functions::burn_handler(bool has_been_attempted){
     try{
         while(attempts < 5){
             counter = 0;
-            c.burn_on(0.20 + (attempts*0.05));
+            c.burn_on();
             while(counter < (max_allowed_burn_time * 100)){
                 sleep_ms(10);
                 c.uart_receive_handler();

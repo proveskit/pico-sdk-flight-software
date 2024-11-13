@@ -38,13 +38,17 @@ pysquared::pysquared(neopixel neo) :
         gpio_set_dir(jetson_enable_pin, GPIO_OUT);
         gpio_init(five_volt_enable_pin);
         gpio_set_dir(five_volt_enable_pin, GPIO_OUT);
+        t.debug_print("enable burn pin not init");
+        gpio_init(enable_burn_pin);
+        gpio_set_dir(enable_burn_pin, GPIO_OUT);
+        t.debug_print("enable burn pin init");
         t.debug_print("GPIO Pins Initialized!\n");
         /*
             PWM init
         */
-        gpio_set_function(enable_burn_pin, GPIO_FUNC_PWM);
+        /*gpio_set_function(enable_burn_pin, GPIO_FUNC_PWM);*/
         gpio_set_function(enable_heater_pin, GPIO_FUNC_PWM);
-        burn_slice = pwm_gpio_to_slice_num(enable_burn_pin);
+        /*burn_slice = pwm_gpio_to_slice_num(enable_burn_pin);*/
         heater_slice = pwm_gpio_to_slice_num(enable_heater_pin);
         t.debug_print("PWM Pins Initialized!\n");
         /*
@@ -229,76 +233,164 @@ float pysquared::getSolarCurrent() {
     return solar_power.readCurrent();
 }
 
-// Initialize the flash memory
-void pysquared::flash_init(){
-    try{
-        uint8_t data[1u<<8];
-        uint8_t new_data[1u<<8];
-        flash_read(data,0);
-        if(data[0] != 0){
-            t.debug_print("Initializing flash\n");
-            uint32_t ints = save_and_disable_interrupts();
-            flash_range_erase((2044*1024), FLASH_SECTOR_SIZE);
-            restore_interrupts(ints);
-            for(int i = 0; i < 256; i++){
-                new_data[i]=0;
+// MRAM Command Codes
+#define MRAM_CMD_WREN  0x06  // Write Enable
+#define MRAM_CMD_WRDI  0x04  // Write Disable
+#define MRAM_CMD_RDSR  0x05  // Read Status Register
+#define MRAM_CMD_WRSR  0x01  // Write Status Register
+#define MRAM_CMD_READ  0x03  // Read Data
+#define MRAM_CMD_WRITE 0x02  // Write Data
+
+// Initialize the MRAM memory
+void pysquared::mram_init() {
+    try {
+        t.debug_print("Initializing MRAM...\n");
+        uint8_t data[256];
+        uint8_t new_data[256];
+        
+        // Read first page to check initialization
+        mram_read(data, 0);
+        
+        if(data[0] != 0) {
+            t.debug_print("First time MRAM initialization\n");
+            
+            // Initialize with zeros
+            for(int i = 0; i < 256; i++) {
+                new_data[i] = 0xFF;
             }
-            flash_variable_update(new_data);
-            flash_update();
+            
+            // Write zeros to both primary and backup pages
+            mram_write(new_data, 0, 256);  // Primary page
+            mram_write(new_data, 256, 256);  // Backup page
+            
             t.debug_print("Testing initialization!\n");
-            flash_read(data,0);
-            for(int i = 0; i < 256; i++){
-                if(data[i]!=new_data[i]){
+            mram_read(data, 0);
+            for(int i = 0; i < 256; i++) {
+                if(data[i] != new_data[i]) {
                     t.debug_print("init failed on: " + to_string(i) + "; data[" + to_string(i) + "] = " + to_string(data[i]) + "\n");
                 }
             }
-            t.debug_print("Flash initialized!\n");
-        }
-        else{
-            t.debug_print("Flash already initialized! Commencing with redundancy check...\n");
-            flash_read(new_data,1);
-            for(int i = 0; i<256; i++){
-                if(data[i]!=new_data[i]){
+            t.debug_print("MRAM initialized!\n");
+        } else {
+            t.debug_print("MRAM already initialized! Checking redundancy...\n");
+            mram_read(new_data, 256);  // Read backup page
+            for(int i = 0; i < 256; i++) {
+                if(data[i] != new_data[i]) {
                     t.debug_print("memory failure on register: " + to_string(i) + "\n");
-                    trust_memory=false;
+                    trust_memory = false;
                 }
             }
-            if(trust_memory){
+            if(trust_memory) {
                 t.debug_print("Memory is intact!\n");
-            }
-            else{
-                t.debug_print("Memory can not be trusted and will not be used in this run!\n");
-                t.debug_print("Updating flash! Memory may be intact on next boot!\n");
-                flash_variable_update(data);
-                flash_update();
+            } else {
+                t.debug_print("Memory cannot be trusted! Updating backup...\n");
+                mram_write(data, 256, 256);  // Update backup page
             }
         }
-    }
-    catch(...){
-        t.debug_print("error erasing flash and setting bit!\n");
+    } catch(...) {
+        t.debug_print("error initializing MRAM!\n");
         error_count++;
     }
 }
 
-void pysquared::flash_variable_update(const uint8_t *data){
-    try{
-        for(int i = 0; i < 256; i++){
-            nvm_memory[i]=data[i];
+// Read data from MRAM
+void pysquared::mram_read(uint8_t *data, uint16_t address) {
+    try {
+        uint8_t cmd = MRAM_CMD_READ;
+        uint8_t addr[3] = {
+            (uint8_t)((address >> 16) & 0xFF),
+            (uint8_t)((address >> 8) & 0xFF),
+            (uint8_t)(address & 0xFF)
+        };
+        
+        gpio_put(spi0_cs0_pin, 0);  // CS low
+        
+        // Send read command
+        spi_write_blocking(spi0, &cmd, 1);
+        // Send address
+        spi_write_blocking(spi0, addr, 3);
+        // Read data
+        spi_read_blocking(spi0, 0, data, 256);
+        
+        gpio_put(spi0_cs0_pin, 1);  // CS high
+        
+        // Update memory variable
+        for(int i = 0; i < 256; i++) {
+            nvm_memory[i] = data[i];
         }
-    }
-    catch(...){
-        t.debug_print("Failed to update variable for flash!\n");
+    } catch(...) {
+        t.debug_print("error reading from MRAM!\n");
         error_count++;
     }
 }
 
+// Write data to MRAM
+void pysquared::mram_write(const uint8_t *data, uint16_t address, uint16_t length) {
+    try {
+        // Enable write operations
+        uint8_t wren_cmd = MRAM_CMD_WREN;
+        gpio_put(spi0_cs0_pin, 0);
+        spi_write_blocking(spi0, &wren_cmd, 1);
+        gpio_put(spi0_cs0_pin, 1);
+        
+        // Write command and address
+        uint8_t write_cmd = MRAM_CMD_WRITE;
+        uint8_t addr[3] = {
+            (uint8_t)((address >> 16) & 0xFF),
+            (uint8_t)((address >> 8) & 0xFF),
+            (uint8_t)(address & 0xFF)
+        };
+        
+        gpio_put(spi0_cs0_pin, 0);
+        spi_write_blocking(spi0, &write_cmd, 1);
+        spi_write_blocking(spi0, addr, 3);
+        
+        // Write data
+        spi_write_blocking(spi0, data, length);
+        gpio_put(spi0_cs0_pin, 1);
+        
+        // Update memory variable
+        for(int i = 0; i < length; i++) {
+            nvm_memory[i] = data[i];
+        }
+    } catch(...) {
+        t.debug_print("error writing to MRAM!\n");
+        error_count++;
+    }
+}
+
+// Update variable in memory
+void pysquared::mram_variable_update(const uint8_t *data) {
+    try {
+        for(int i = 0; i < 256; i++) {
+            nvm_memory[i] = data[i];
+        }
+    } catch(...) {
+        t.debug_print("Failed to update variable for MRAM!\n");
+        error_count++;
+    }
+}
+
+// Read variable from memory
+void pysquared::mram_variable_read(uint8_t *data) {
+    try {
+        for(int i = 0; i < 256; i++) {
+            data[i] = nvm_memory[i];
+        }
+    } catch(...) {
+        t.debug_print("failed to read from memory variable!\n");
+        error_count++;
+    }
+}
+
+/* WE NEED TO LOOK INTO THIS D;
 void pysquared::flash_update(){
     try{
         t.debug_print("writing to flash...\n");
         uint32_t ints = save_and_disable_interrupts();
-        flash_range_erase((2044*1024), FLASH_SECTOR_SIZE);
-        flash_range_program((2044*1024), nvm_memory, FLASH_PAGE_SIZE);
-        flash_range_program((2044*1024+256), nvm_memory, FLASH_PAGE_SIZE);
+        flash_range_erase((500*1024), FLASH_SECTOR_SIZE);
+        flash_range_program((500*1024), nvm_memory, FLASH_PAGE_SIZE);
+        flash_range_program((500*1024+256), nvm_memory, FLASH_PAGE_SIZE);
         restore_interrupts(ints);
         t.debug_print("Flash Updated!\n");
     }
@@ -307,75 +399,48 @@ void pysquared::flash_update(){
         error_count++;
     }
 }
+*/
 
-void pysquared::flash_read(uint8_t *data, uint8_t page){
-    try{
-        flash_target_contents = (const uint8_t *) (XIP_BASE + 2044*1024 + 256*page);
-        t.debug_print("reading flash!\n");
-        uint32_t ints = save_and_disable_interrupts();
-        for(int i = 0; i < 256; i++){
-            data[i] = flash_target_contents[i];
-            nvm_memory[i]=data[i];
-        }
-        restore_interrupts(ints);
-        t.debug_print("Done reading!\n");
-    }
-    catch(...){
-        t.debug_print("error reading from flash!\n");
-        error_count++;
-    }
-}
-
-void pysquared::flash_variable_read(uint8_t *data){
-    try{
-        for(int i = 0; i < 256; i++){
-            data[i] = nvm_memory[i];
-        }
-    }
-    catch(...){
-        t.debug_print("failed to read from memory variable!\n");
-        error_count++;
-    }
-}
-
-void pysquared::reg_set(const uint8_t reg, const uint8_t val){
-    try{
-        nvm_memory[reg]=val;
-        return;
-    }
-    catch(...){
+// Set register value
+void pysquared::reg_set(const uint8_t reg, const uint8_t val) {
+    try {
+        nvm_memory[reg] = val;
+        // Write to both primary and backup pages
+        mram_write(&val, reg, 1);
+        mram_write(&val, reg + 256, 1);
+    } catch(...) {
         t.debug_print("ERROR Failed to update register!\n");
         error_count++;
     }
 }
 
-void pysquared::bit_set(const uint8_t reg, const uint8_t bit, bool state){
-    try{
-        uint8_t data[1u<<8];
-        flash_variable_read(data);
-        if(state){
-            data[reg] |= (0x01<<bit);
-        }
-        else{
-            uint8_t temp = 0xFF << (bit+1);
-            for(int i = 0; i < bit; i++){
+// Set bit in register
+void pysquared::bit_set(const uint8_t reg, const uint8_t bit, bool state) {
+    try {
+        uint8_t data[256];
+        mram_variable_read(data);
+        if(state) {
+            data[reg] |= (0x01 << bit);
+        } else {
+            uint8_t temp = 0xFF << (bit + 1);
+            for(int i = 0; i < bit; i++) {
                 temp = temp + (1u << i);
             }
             data[reg] &= temp;
         }
-        reg_set(reg,data[reg]);
-    }
-    catch(...){
+        reg_set(reg, data[reg]);
+    } catch(...) {
         t.debug_print("ERROR with updating a NVM bit!\n");
         error_count++;
     }
 }
 
 void pysquared::bus_reset(){
-    t.debug_print("Attempting to reset bus voltage...\n");
+    t.debug_print("Attempting to reset bus voltage...\n");  
     try{
         bit_set(1,4,false);
-        flash_update();
+        //WE NEED TO LOOK INTO THIS OH NO D;
+        //flash_update();
         for(int i = 10; i > 0; i --){
             t.debug_print("Bus being reset in " + to_string(i) + "seconds!\n");
             sleep_ms(1000);
@@ -563,42 +628,43 @@ void pysquared::heater_off(){
     }
 }
 
-void pysquared::burn_on(float duty_cycle){
-    try{
-        int pwm_period = 500000; //ns or 2000Hz
-        int pico_period=8; //ns
-        int wrap_point = pwm_period/pico_period;
-        int duty_wrap = wrap_point*duty_cycle;
+void pysquared::burn_on() {
+    try {
         t.debug_print("Turning Burn Wire on...\n");
+        
+        // Enable the relay
         gpio_put(relay_pin, true);
-        pwm_set_enabled(burn_slice, true);
-        pwm_set_wrap(burn_slice, wrap_point);
-        pwm_set_chan_level(burn_slice, PWM_CHAN_A, duty_wrap); //This will yield a 50% duty cycle and a max average pwm voltage of 4.2V which is less than the 5V max they are rated for. (8.4V * 250/500 = 4.2V)
-        t.debug_print("done!\n");
+        t.debug_print("Relay Pin On!");
+        // Enable burn wire pin
+        gpio_put(enable_burn_pin, true);
+        t.debug_print("Burn Wire Pin On!");
+        
+        t.debug_print("Burn wire activated\n");
     }
-    catch(...){
+    catch(...) {
         t.debug_print("ERROR while turning on the Burn Wire!\n");
-        pwm_set_chan_level(burn_slice, PWM_CHAN_A, 0);
-        pwm_set_enabled(burn_slice,false);
+        // Safety shutdown
+        gpio_put(enable_burn_pin, false);
         gpio_put(relay_pin, false);
         error_count++;
     }
 }
 
-void pysquared::burn_off(){
-    try{
+void pysquared::burn_off() {
+    try {
         t.debug_print("Turning Burn Wire off...\n");
-        pwm_set_chan_level(burn_slice, PWM_CHAN_A, 0);
-        pwm_set_enabled(burn_slice,false);
+        
+        // Disable burn wire pin
+        gpio_put(enable_burn_pin, false);
+        // Disable relay
         gpio_put(relay_pin, false);
-        t.debug_print("done!\n");
+        
+        t.debug_print("Burn wire deactivated successfully\n");
     }
-/*     catch(const std::exception &e){
-        printf(e.what());
-        error_count++;
-    } */
-    catch(...){
+    catch(...) {
         t.debug_print("ERROR while turning off the Burn Wire!\n");
+        // Force everything off in case of error
+        gpio_put(enable_burn_pin, false);
         gpio_put(relay_pin, false);
         error_count++;
     }

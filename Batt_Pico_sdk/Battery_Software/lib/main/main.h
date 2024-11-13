@@ -22,6 +22,7 @@
 #include "hardware/watchdog.h"
 #include "hardware/flash.h"
 #include "pico/stdlib.h"
+#include "pico/stdio_usb.h"
 
 // Time constants (in milliseconds)
 constexpr uint WATCHDOG_TIMEOUT_MS = 5000;    // 5 seconds

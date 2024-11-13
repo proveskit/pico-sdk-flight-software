@@ -16,3 +16,4 @@ target_include_directories(mcp25625 PUBLIC lib)
 target_include_directories(functions PUBLIC lib)
 
 pico_enable_stdio_usb(main 1)
+pico_sdk_init()

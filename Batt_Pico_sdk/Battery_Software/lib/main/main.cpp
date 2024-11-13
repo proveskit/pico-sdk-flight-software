@@ -65,8 +65,8 @@ bool initializeWatchdog(tools& t) {
 }
 
 void handleFlashInitialization(pysquared& satellite, tools& t, bool watchdog_reset, uint8_t* data) {
-    satellite.flash_init();    
-    satellite.flash_read(data, 0);
+    satellite.mram_init();    
+    satellite.mram_read(data, 0);
     
     if (watchdog_reset) {
         t.debug_print("setting watchdog tracker!\n");
@@ -106,8 +106,9 @@ BurnStatus checkBurnStatus(pysquared& satellite, tools& t, uint8_t* data) {
 void updateBootCount(pysquared& satellite, tools& t, uint8_t* data) {
     data[BOOT_REG]++;
     satellite.reg_set(BOOT_REG, data[BOOT_REG]);
-    satellite.flash_update();
-    satellite.flash_read(data, 0);
+    //WE NEED TO LOOK INTO THIS D;
+    //satellite.flash_update();
+    satellite.mram_read(data, 0);
     t.debug_print("updated boot count: " + to_string(data[BOOT_REG]) + "\n");
     t.debug_print("updated status reg: " + to_string(data[STATUS_REG]) + "\n");
 }
@@ -129,7 +130,8 @@ bool executeBurnSequence(pysquared& satellite, satellite_functions& functions,
         satellite.arm(false);
         satellite.bit_set(STATUS_REG, BURNED_BIT, true);
         satellite.bit_set(STATUS_REG, BROWNOUT_BIT, false);
-        satellite.flash_update();
+        // WE NEED TO LOOK INTO THIS D;
+        //satellite.flash_update();
         t.debug_print("Flash updated to reflect successful burn and disarmed status!\n");
         return true;
     }

@@ -57,7 +57,8 @@ add_library(mcp25625
 
 # Library dependencies
 target_link_libraries(main PRIVATE 
-    pico_stdlib 
+    pico_stdlib
+    pico_stdio_usb
     neopixel 
     hardware_pio 
     hardware_i2c 
@@ -145,7 +146,7 @@ target_link_libraries(mcp25625 PRIVATE
 )
 
 target_link_libraries(functions PRIVATE 
-    pico_stdlib 
+    pico_stdlib
     hardware_flash 
     hardware_sync 
     hardware_pio 

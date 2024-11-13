@@ -181,16 +181,13 @@ void tools::test_burn_wire(pysquared& satellite, satellite_functions& functions,
 
     try {
         debug_print("Testing burn wire at " + to_string(duty_cycle * 100) + "% duty cycle for 2 seconds...\n");
-        functions.c.burn_on(duty_cycle);
+        functions.c.burn_on();
         
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 50; i++) {
+            debug_print("In the Loop!");
             sleep_ms(100);
             watchdog_update();
             
-            if (functions.c.burned) {
-                debug_print("Burn detected!\n");
-                break;
-            }
         }
         
         functions.c.burn_off();
@@ -215,6 +212,7 @@ void tools::print_help() {
     printf("led <color>     - Set LED (red/green/yellow/purple/off)\n");
     printf("faces <on/off>  - Control all faces\n");
     printf("camera <on/off> - Control camera\n");
+    printf("relay - flips the relay on and off\n");
 }
 
 void tools::execute_command(pysquared& satellite, satellite_functions& functions, neopixel& neo) {
@@ -356,6 +354,23 @@ void tools::execute_command(pysquared& satellite, satellite_functions& functions
                     case hash_str("off"):
                         debug_print("Turning camera off...");
                         satellite.camera_off();
+                        break;
+                    default:
+                        debug_print("Invalid argument for camera command");
+                }
+            }
+            break;
+
+        case hash_str("relay"):
+            if (parsed == 2) {
+                switch (hash_runtime(arg)) {
+                    case hash_str("on"):
+                        debug_print("Turning relay on...");
+                        gpio_put(satellite.relay_pin, true);
+                        break;
+                    case hash_str("off"):
+                        debug_print("Turning relay off...");
+                        gpio_put(satellite.relay_pin, false);
                         break;
                     default:
                         debug_print("Invalid argument for camera command");

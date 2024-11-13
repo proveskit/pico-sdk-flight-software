@@ -14,9 +14,16 @@ if (PICO_SDK_VERSION_STRING VERSION_LESS "1.3.0")
     message(FATAL_ERROR "Raspberry Pi Pico SDK version 1.3.0 (or later) required. Your version is ${PICO_SDK_VERSION_STRING}")
 endif()
 
+set(PICO_SDK_PATH "/Users/mattchang/pico-sdk/pico-sdk")
+include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+
 set(PICO_EXAMPLES_PATH ${PROJECT_SOURCE_DIR})
 
 set(PICO_CXX_ENABLE_EXCEPTIONS 1)
+
+set(PICO_PLATFORM rp2040)
+
+set(PICO_DEFAULT_BOOT_STAGE2 boot2_generic_03h)
 
 # Initialize the SDK
 pico_sdk_init()
