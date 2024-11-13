@@ -752,7 +752,7 @@ void pysquared::uart_receive_handler() {
     
     while (uart_is_readable(uart0) && counter < MAX_BYTES) {
         // Check for UART errors
-        if (uart_is_readable_within_us(uart0, 1000)) {
+        if (uart_is_readable_within_us(uart0, 100)) {
             num = uart_getc(uart0);
             t.debug_print("Received: " + to_string(num) + "\n");
             

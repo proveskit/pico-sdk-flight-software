@@ -33,12 +33,12 @@ void main_program(neopixel neo) {
      
     // Main operation loop
     while (true) {
-        satellite.all_faces_off();
+        // Defaulting to faces on camera off to conserve power
+        satellite.all_faces_on();
         satellite.camera_off();
         sleep_ms(SLEEP_INTERVAL_MS);
         watchdog_update();
-        satellite.all_faces_on();
-        satellite.camera_on();
+
         functions.battery_manager();
         t.debug_print("about to enter the main loop!\n");
         
@@ -77,6 +77,18 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
         }
         satellite.check_reboot();
     }
+}
+
+void general_operations(tools t, satellite_functions functions) {
+    t.debug_print("Satellite is saving power!\n");
+    functions.c.five_volt_disable();
+    functions.c.flight_computer_on();
+
+    while (true):
+        functions.c.uart_receive_handler();
+        watchdog_update();
+        sleep_ms(SLEEP_INTERVAL_MS);
+
 }
 
 void critical_power_operations(tools t, satellite_functions functions) {
@@ -277,35 +289,4 @@ bool executeBurnSequence(pysquared& satellite, satellite_functions& functions,
     }
     return false;
 }
-
-/* USUAL MAIN LOOP
-
-void runMainLoop(pysquared& satellite, satellite_functions& functions, 
-                tools& t, neopixel& neo) {
-    // uint8_t stuff[] = {0x05};
-
-    keyboard_test();
-
-    while (true) {
-        watchdog_update();
-        // satellite.can_bus_send(stuff);
-        // satellite.can_bus_listen();
-        
-        switch (satellite.power_mode()) {
-            case 0:
-                critical_power_operations(t, functions);
-                break;
-            case 1:
-                low_power_operations(t, neo, functions);
-                break;
-            case 2:
-                normal_power_operations(t, neo, functions);
-                break;
-            case 3:
-                maximum_power_operations(t, neo, functions);
-                break;
-        }
-        satellite.check_reboot();
-    }
-}*/
 
