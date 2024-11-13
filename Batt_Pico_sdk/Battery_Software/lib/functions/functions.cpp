@@ -52,7 +52,7 @@ void satellite_functions::battery_manager() {
         } else if (battery_voltage >= 6.8) {
             t.debug_print("Setting power mode to 2 (normal)\n");
             c.pwr_mode = 2;
-        } else if (battery_voltage >= 6.4) {
+        } else if (battery_voltage >= 5.8) {
             t.debug_print("Setting power mode to 1 (low)\n");
             c.pwr_mode = 1;
         } else {

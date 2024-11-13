@@ -4,7 +4,6 @@
 #include <neopixel/neopixel.h>
 #include <tools/tools.h>
 #include <pysquared/pysquared.h>
-#include <device_drivers/MCP25625.h>
 #include "hardware/gpio.h"
 #include "hardware/i2c.h"
 #include "hardware/spi.h"

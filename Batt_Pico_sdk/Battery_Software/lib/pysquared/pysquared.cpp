@@ -28,8 +28,8 @@ pysquared::pysquared(neopixel neo) :
         gpio_set_dir(vbus_reset_pin, GPIO_OUT);
         gpio_init(relay_pin);
         gpio_set_dir(relay_pin, GPIO_OUT);
-        gpio_init(spi1_cs0_pin);
-        gpio_set_dir(spi1_cs0_pin, GPIO_OUT);
+        //gpio_init(spi1_cs0_pin);
+        //gpio_set_dir(spi1_cs0_pin, GPIO_OUT);
         gpio_init(d0_pin);
         gpio_set_dir(d0_pin, GPIO_IN);
         gpio_init(is_charge_pin);
@@ -67,12 +67,12 @@ pysquared::pysquared(neopixel neo) :
             UART init
         */
         uart_init(uart0,2400);
-        gpio_set_function(tx_pin, GPIO_FUNC_UART);
-        gpio_set_function(rx_pin, GPIO_FUNC_UART);
-        uart_set_baudrate(uart0,115200);
+        gpio_set_function(uart_tx, GPIO_FUNC_UART);
+        gpio_set_function(uart_rx, GPIO_FUNC_UART);
+        uart_set_baudrate(uart0,BAUD_RATE);
         uart_set_hw_flow(uart0, false, false);
         uart_set_format(uart0, 8, 1, UART_PARITY_NONE);
-        uart_set_fifo_enabled(uart0, false);
+        uart_set_fifo_enabled(uart0, true);
         t.debug_print("UART Bus Initialized!\n");
         /*
             SPI init
@@ -81,10 +81,10 @@ pysquared::pysquared(neopixel neo) :
         gpio_set_function(spi0_miso_pin, GPIO_FUNC_SPI);
         gpio_set_function(spi0_sck_pin, GPIO_FUNC_SPI);
         gpio_set_function(spi0_mosi_pin, GPIO_FUNC_SPI);
-        spi_init(spi1, 500 * 1000);
-        gpio_set_function(spi1_miso_pin, GPIO_FUNC_SPI);
-        gpio_set_function(spi1_sck_pin, GPIO_FUNC_SPI);
-        gpio_set_function(spi1_mosi_pin, GPIO_FUNC_SPI);
+        //spi_init(spi1, 500 * 1000);
+        //gpio_set_function(spi1_miso_pin, GPIO_FUNC_SPI);
+        //gpio_set_function(spi1_sck_pin, GPIO_FUNC_SPI);
+        //gpio_set_function(spi1_mosi_pin, GPIO_FUNC_SPI);
         t.debug_print("SPI Bus Initialized!\n");
 
         // LED Driver init
@@ -132,6 +132,23 @@ pysquared::pysquared(neopixel neo) :
             t.debug_print("ERROR initializing Solar Power Monitor!\n");
             error_count++;
         }
+
+        // Initialize CAN bus
+        try {
+            if (!init_can_bus()) {  // Call without parameters since they're class members
+                t.debug_print("[CAN] Initialization failed\n");
+                error_count++;
+            } else {
+                t.debug_print("[CAN] Bus initialized successfully\n");
+            }
+        } catch (const std::exception& e) {
+            t.debug_print("[CAN] Exception during initialization: " + std::string(e.what()) + "\n");
+            error_count++;
+        } catch (...) {
+            t.debug_print("[CAN] Unknown exception during CAN initialization\n");
+            error_count++;
+        }
+        
     } catch(...){
         t.debug_print("ERROR Initializing Hardware: \n");
         error_count++;
@@ -435,6 +452,52 @@ void pysquared::bit_set(const uint8_t reg, const uint8_t bit, bool state) {
     }
 }
 
+bool pysquared::init_can_bus() {
+    t.debug_print("[CAN] Starting initialization...\n");
+    sleep_ms(100);  // Give hardware time to stabilize
+    
+    // Step 1: Reset
+    t.debug_print("[CAN] Attempting reset...\n");
+    MCP2515::ERROR result = can_bus.reset();
+    if (result != MCP2515::ERROR_OK) {
+        t.debug_print("[CAN] Reset failed with code: " + std::to_string(static_cast<int>(result)) + "\n");
+        return false;
+    }
+    sleep_ms(100);  // Give time for reset to complete
+    
+    // Step 2: Set Configuration mode
+    t.debug_print("[CAN] Setting config mode...\n");
+    result = can_bus.setConfigMode();
+    if (result != MCP2515::ERROR_OK) {
+        t.debug_print("[CAN] Failed to enter config mode\n");
+        return false;
+    }
+    sleep_ms(10);
+    
+    // Step 3: Set Bit Rate (assuming 16MHz clock)
+    t.debug_print("[CAN] Setting bit rate...\n");
+    result = can_bus.setBitrate(CAN_500KBPS, MCP_16MHZ);
+    if (result != MCP2515::ERROR_OK) {
+        t.debug_print("[CAN] Failed to set bit rate\n");
+        return false;
+    }
+    
+    // Step 4: Set Normal Mode
+    t.debug_print("[CAN] Setting normal mode...\n");
+    result = can_bus.setNormalMode();
+    if (result != MCP2515::ERROR_OK) {
+        t.debug_print("[CAN] Failed to enter normal mode\n");
+        return false;
+    }
+    
+    // Check status
+    uint8_t status = can_bus.getStatus();
+    t.debug_print("[CAN] Final status: 0x" + std::to_string(status) + "\n");
+    
+    t.debug_print("[CAN] Initialization completed successfully\n");
+    return true;
+}
+
 void pysquared::bus_reset(){
     t.debug_print("Attempting to reset bus voltage...\n");  
     try{
@@ -670,98 +733,71 @@ void pysquared::burn_off() {
     }
 }
 
-void pysquared::can_bus_init(){
-    try{
-        if(can_bus.begin()){
-            t.debug_print("intialized successfully!\n");
-        }
+bool pysquared::uart_send(const char *msg) {
+    if (!msg || !uart0) {
+        t.debug_print("Invalid UART or message pointer\n");
+        return false;
     }
-    catch(...){
-        t.debug_print("ERROR while configuring can bus!\n");
-        error_count++;
-    }
+    
+    t.debug_print("sending message: " + string(msg) + "\n");
+    
+    // Send ACK character first to indicate ready to send
+    uart_write_blocking(uart0, (const uint8_t*)"<", 1);
+    
+    // Send the message
+    uart_write_blocking(uart0, (const uint8_t*)msg, strlen(msg));
+    
+    // Send end marker
+    uart_write_blocking(uart0, (const uint8_t*)">\n", 2);
+    
+    t.debug_print("Successful send!\n");
+    return true;
 }
 
-bool pysquared::can_bus_send(uint8_t *data){
-    try{
-        CANMessage messageToSend;
-        messageToSend.id = 0x123; // Example CAN ID
-        messageToSend.length = 4; // Data length
-        messageToSend.data[0] = 0xDE; // Example data payload
-        messageToSend.data[1] = 0xAD;
-        messageToSend.data[2] = 0xBE;
-        messageToSend.data[3] = 0xEF;
-        if (can_bus.sendCANMessage(messageToSend)) {
-            t.debug_print("Message sent successfully.\n");
-            return true;
-        } 
-        else {
-            t.debug_print("Failed to send message.\n");
-            return false;
-        }
-        
-    }
-    catch(...){
-        t.debug_print("ERROR while sending item on can bus!\n");
-        error_count++;
-    }
-    return false;
-}
-
-void pysquared::can_bus_loopback(){
-    can_bus.enableLoopback();
-    can_bus.enableSilentMode();
-}
-
-void pysquared::can_bus_listen(){
-    CANMessage messageReceived;
-    bool messageReceivedFlag = false;
-    for (int i = 0; i < 100 && !messageReceivedFlag; i++) { // Simple timeout mechanism
-        if (can_bus.receiveCANMessage(messageReceived)) {
-            t.debug_print("Message received: ID=0x" + to_string(messageReceived.id) + ", Data=" + to_string(messageReceived.data[0]) + "\n");
-            messageReceivedFlag = true;
+void pysquared::uart_receive_handler() {
+    t.debug_print("Checking for UART messages...\n");
+    
+    const int MAX_BYTES = 256; // Prevent infinite loop
+    int counter = 0;
+    uint8_t num;
+    
+    while (uart_is_readable(uart0) && counter < MAX_BYTES) {
+        // Check for UART errors
+        if (uart_is_readable_within_us(uart0, 1000)) {
+            num = uart_getc(uart0);
+            t.debug_print("Received: " + to_string(num) + "\n");
+            
+            // More robust command parsing
+            if (isdigit(num)) {
+                int cmd = num - '0';
+                if (cmd >= 0 && cmd <= 11) {
+                    exec_uart_command(cmd);
+                } else {
+                    t.debug_print("Invalid command number\n");
+                }
+            }
+            counter++;
         } else {
-            sleep_ms(10); // Delay to prevent spamming the receive check
+            t.debug_print("UART read timeout\n");
+            break;
         }
     }
     
-    if (!messageReceivedFlag) {
-        t.debug_print("No message received.\n");
-    }
-}
-
-bool pysquared::uart_send(const char *msg){
-    try{
-        string message(msg);
-        t.debug_print("sending message: " + message + "\n");
-        uart_puts(uart0, msg);
-        t.debug_print("Successful send!\n");
-        return true;
-    }
-    catch(...){
-        t.debug_print("failed to send!\n");
-    }
-    return false;
-}
-
-void pysquared::uart_receive_handler(){
-    t.debug_print("Checking for UART messages...\n");
-    int counter = 0;
-    uint8_t num;
-    while(uart_is_readable(uart0)) {
-        num = uart_getc(uart0);
-        t.debug_print(to_string(num) + "\n");
-        if(num-'0' <= 11){
-            exec_uart_command(num-'0');
-        }
-        counter++;
+    if (counter >= MAX_BYTES) {
+        t.debug_print("Max receive buffer size reached\n");
     }
 }
 
 void pysquared::exec_uart_command(char commanded){
+    // First send an ACK that we received the command
+    uart_write_blocking(uart0, (const uint8_t*)"A", 1);
+
     string message;
     const char *msg;
     t.debug_print("Command #" + to_string(commanded) + " will be executed!\n");
+
+    sleep_ms(10);
+    uart_write_blocking(uart0, (const uint8_t*)"A", 1);
     switch (commanded)
     {
     case 1:
@@ -858,6 +894,7 @@ void pysquared::exec_uart_command(char commanded){
 }
 
 uint8_t pysquared::power_mode() {return pwr_mode;}
+
 float pysquared::thermocouple_temp(){
     try{
         float val=static_cast< float >(adc.readSingleEnded(1))*2.048/2048;
@@ -965,3 +1002,8 @@ bool pysquared::charging(bool state){
 }
 
 int pysquared::num_error(){return error_count;}
+
+
+
+
+// CAN Bus Stuff
