@@ -17,6 +17,8 @@ add_library(tools
 add_library(pysquared 
     pysquared/pysquared.h 
     pysquared/pysquared.cpp
+    device_drivers/software-uart/software-uart.h
+    device_drivers/software-uart/software-uart.cpp 
 )
 
 add_library(functions 
@@ -50,15 +52,14 @@ add_library(ads1015
     device_drivers/ADS1015.cpp
 )
 
-add_library(mcp2515
+add_library(mcp2515 
     device_drivers/mcp2515/MCP2515.h 
     device_drivers/mcp2515/MCP2515.cpp
 )
 
 # Library dependencies
 target_link_libraries(main PRIVATE 
-    pico_stdlib
-    pico_stdio_usb
+    pico_stdlib 
     neopixel 
     hardware_pio 
     hardware_i2c 
@@ -146,7 +147,7 @@ target_link_libraries(mcp2515 PRIVATE
 )
 
 target_link_libraries(functions PRIVATE 
-    pico_stdlib
+    pico_stdlib 
     hardware_flash 
     hardware_sync 
     hardware_pio 

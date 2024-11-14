@@ -25,6 +25,7 @@
 #include "hardware/spi.h"
 #include "hardware/uart.h"
 #include "hardware/pio.h"
+#include <device_drivers/software-uart/software-uart.h>
 
 
 extern uint32_t ADDR_PERSISTENT[];
@@ -50,6 +51,8 @@ class pysquared{
 private:
     tools t;
     const uint8_t *flash_target_contents;
+
+    SoftwareUART soft_uart;  // Use pin 17 for RX
 
     bool charge_status;
     bool armed = false;  // Initialize to false by default
@@ -92,7 +95,7 @@ public:
     uint8_t vbus_reset_pin=14;
     uint8_t relay_pin=15;
     uint8_t uart_tx=16;   //used for backup RF
-    uint8_t uart_rx=17;    //used for backup RF
+    //uint8_t uart_rx=17;    //used for backup RF
     //uint8_t spi1_miso_pin=16;   //used for backup RF
     //uint8_t spi1_cs0_pin=17;    //used for backup RF
     uint8_t spi1_sck_pin=18;    //used for backup RF

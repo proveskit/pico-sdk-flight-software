@@ -2,6 +2,10 @@
     "files.associations": {
         "cstring": "cpp",
         "queue": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "array": "c",
+        "span": "c",
+        "string_view": "c",
+        "vector": "c"
     }
 }

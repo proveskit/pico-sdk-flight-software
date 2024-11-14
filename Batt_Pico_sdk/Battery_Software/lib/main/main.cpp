@@ -33,18 +33,16 @@ void main_program(neopixel neo) {
      
     // Main operation loop
     while (true) {
-        // Defaulting to faces on camera off to conserve power
-        satellite.all_faces_on();
         satellite.camera_off();
         sleep_ms(SLEEP_INTERVAL_MS);
         watchdog_update();
-
+        satellite.all_faces_on();
         functions.battery_manager();
         t.debug_print("about to enter the main loop!\n");
         
-        runMainLoop(satellite, functions, t, neo);
+        // runMainLoop(satellite, functions, t, neo);
 
-        // test_can(satellite, neo, functions);
+        test_can(satellite, neo, functions);
     }
 }
 
@@ -59,8 +57,6 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
     // uint8_t stuff[] = {0x05};
     while (true) {
         watchdog_update();
-        general_operations(t, functions);
-        /*
         functions.c.uart_receive_handler();
         
         switch (satellite.power_mode()) {
@@ -77,22 +73,8 @@ void runMainLoop(pysquared& satellite, satellite_functions& functions,
                 maximum_power_operations(t, neo, functions);
                 break;
         }
-        */
         satellite.check_reboot();
     }
-}
-
-void general_operations(tools t, satellite_functions functions) {
-    t.debug_print("Satellite is saving power!\n");
-    functions.c.five_volt_disable();
-    functions.c.flight_computer_on();
-
-    while (true) {
-        functions.c.uart_receive_handler();
-        watchdog_update();
-        sleep_ms(SLEEP_INTERVAL_MS);
-    }
-
 }
 
 void critical_power_operations(tools t, satellite_functions functions) {
@@ -153,6 +135,54 @@ void maximum_power_operations(tools t, neopixel neo, satellite_functions functio
     t.safe_sleep(SLEEP_INTERVAL_MS);
 }
 
+/*
+====================
+Test Loops
+====================
+*/
+void test_can(pysquared satellite, neopixel neo, satellite_functions functions) {
+    tools t(true, "[CAN TEST] ");
+    t.debug_print("Starting UART test sequence...\n");
+
+    functions.c.flight_computer_on();
+    
+    neo.put_pixel(neo.urgb_u32(LED_YELLOW.r, LED_YELLOW.g, LED_YELLOW.b));
+    
+    /*
+    // Prepare the CAN message - using 8 bytes max for standard CAN
+    struct can_frame frame;
+    frame.can_id = 0x123;    // Arbitrary CAN ID
+    frame.can_dlc = 7;       // Length of "Testing"
+    
+    // Message that fits in 8 bytes
+    const char* message = "Testing";
+    memcpy(frame.data, message, frame.can_dlc);
+    
+    t.debug_print("Beginning transmission loop...\n");
+    
+    while (true) {
+        MCP2515::ERROR result = satellite.can_bus.sendMessage(&frame);
+        
+        if (result == MCP2515::ERROR_OK) {
+            t.debug_print("CAN message sent successfully\n");
+            neo.put_pixel(neo.urgb_u32(LED_GREEN.r, LED_GREEN.g, LED_GREEN.b));
+        } else {
+            t.debug_print("Error sending message: " + std::to_string(static_cast<int>(result)) + "\n");
+            neo.put_pixel(neo.urgb_u32(LED_RED.r, LED_RED.g, LED_RED.b));
+        }
+        
+        sleep_ms(1000);  // Wait for 1 second before next transmission
+        watchdog_update();  // Keep the watchdog happy
+    }
+    */
+   while (true) {
+       functions.c.uart_receive_handler();
+       watchdog_update();
+       sleep_ms(100);
+       // t.safe_sleep(5000);
+   }
+}
+
 
 /*
 ====================
@@ -174,8 +204,8 @@ bool initializeWatchdog(tools& t) {
 }
 
 void handleFlashInitialization(pysquared& satellite, tools& t, bool watchdog_reset, uint8_t* data) {
-    satellite.mram_init();    
-    satellite.mram_read(data, 0);
+    satellite.flash_init();    
+    satellite.flash_read(data, 0);
     
     if (watchdog_reset) {
         t.debug_print("setting watchdog tracker!\n");
@@ -215,9 +245,8 @@ BurnStatus checkBurnStatus(pysquared& satellite, tools& t, uint8_t* data) {
 void updateBootCount(pysquared& satellite, tools& t, uint8_t* data) {
     data[BOOT_REG]++;
     satellite.reg_set(BOOT_REG, data[BOOT_REG]);
-    //WE NEED TO LOOK INTO THIS D;
-    //satellite.flash_update();
-    satellite.mram_read(data, 0);
+    satellite.flash_update();
+    satellite.flash_read(data, 0);
     t.debug_print("updated boot count: " + to_string(data[BOOT_REG]) + "\n");
     t.debug_print("updated status reg: " + to_string(data[STATUS_REG]) + "\n");
 }
@@ -239,8 +268,7 @@ bool executeBurnSequence(pysquared& satellite, satellite_functions& functions,
         satellite.arm(false);
         satellite.bit_set(STATUS_REG, BURNED_BIT, true);
         satellite.bit_set(STATUS_REG, BROWNOUT_BIT, false);
-        // WE NEED TO LOOK INTO THIS D;
-        //satellite.flash_update();
+        satellite.flash_update();
         t.debug_print("Flash updated to reflect successful burn and disarmed status!\n");
         return true;
     }
