@@ -17,6 +17,8 @@ add_library(tools
 add_library(pysquared 
     pysquared/pysquared.h 
     pysquared/pysquared.cpp
+    device_drivers/software-uart/software-uart.h
+    device_drivers/software-uart/software-uart.cpp 
 )
 
 add_library(functions 
@@ -51,8 +53,8 @@ add_library(ads1015
 )
 
 add_library(mcp2515 
-    device_drivers/MCP2515.h 
-    device_drivers/MCP25625.cpp
+    device_drivers/mcp2515/MCP2515.h 
+    device_drivers/mcp2515/MCP2515.cpp
 )
 
 # Library dependencies
@@ -109,7 +111,7 @@ target_link_libraries(pysquared PRIVATE
     pca9685 
     vl6180 
     ads1015 
-    mcp25625
+    mcp2515
 )
 
 # Device driver dependencies
@@ -138,7 +140,7 @@ target_link_libraries(ads1015 PRIVATE
     hardware_i2c
 )
 
-target_link_libraries(mcp25625 PRIVATE
+target_link_libraries(mcp2515 PRIVATE
     pico_stdlib 
     hardware_spi 
     hardware_gpio
@@ -160,5 +162,5 @@ target_link_libraries(functions PRIVATE
     tools 
     pysquared 
     vl6180 
-    mcp25625
+    mcp2515
 )

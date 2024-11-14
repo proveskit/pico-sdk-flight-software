@@ -2,6 +2,7 @@
                                                       //instantiate tools class in pysquared
 pysquared::pysquared(neopixel neo) : 
     t(true, "[PYSQUARED] "),
+    soft_uart(26),
     battery_power(i2c0, 0x40),
     solar_power(i2c0, 0x44),
     internal_temp(i2c0, 0x4f),
@@ -64,7 +65,7 @@ pysquared::pysquared(neopixel neo) :
         */
         uart_init(uart0,2400);
         gpio_set_function(uart_tx, GPIO_FUNC_UART);
-        gpio_set_function(uart_rx, GPIO_FUNC_UART);
+        // gpio_set_function(uart_rx, GPIO_FUNC_UART);
         uart_set_baudrate(uart0,BAUD_RATE);
         uart_set_hw_flow(uart0, false, false);
         uart_set_format(uart0, 8, 1, UART_PARITY_NONE);
@@ -690,7 +691,41 @@ bool pysquared::uart_send(const char *msg) {
 
 void pysquared::uart_receive_handler() {
     t.debug_print("Checking for UART messages...\n");
+
+    // Configure GPIO17 as input
+    // gpio_init(17);
+    // gpio_set_dir(17, GPIO_IN);
+
+    /*
+    // Read from GPIO17
+    if (gpio_get(17)) {
+        t.debug_print("GPIO17 is HIGH\n");
+    } else {
+        t.debug_print("GPIO17 is LOW\n");
+    }
+    */
+    // Handle hardware UART
+    /*
+    string message;
+    const char *msg;
     
+    message = to_string(battery_voltage()) + "," + to_string(draw_current()) + "," + 
+              to_string(charge_voltage()) + "," + to_string(charge_current()) + "," + 
+              to_string(is_charging());
+    msg = message.c_str();
+    uart_send(msg);
+    */
+    // Handle software UART reception
+
+    uint8_t received = soft_uart.receiveBytes();
+    if (received != 0xFF) {  // Valid byte received
+        t.debug_print("Received byte via software UART: " + std::to_string(received) + "\n");
+        exec_uart_command(received);  // Process the command as before
+    }
+    
+}
+
+    /*
     const int MAX_BYTES = 256; // Prevent infinite loop
     int counter = 0;
     uint8_t num;
@@ -720,7 +755,7 @@ void pysquared::uart_receive_handler() {
     if (counter >= MAX_BYTES) {
         t.debug_print("Max receive buffer size reached\n");
     }
-}
+    */
 
 void pysquared::exec_uart_command(char commanded){
     // First send an ACK that we received the command
