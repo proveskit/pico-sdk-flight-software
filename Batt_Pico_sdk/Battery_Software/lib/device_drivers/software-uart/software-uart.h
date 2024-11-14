@@ -1,22 +1,21 @@
 #ifndef SOFTWARE_UART_H
 #define SOFTWARE_UART_H
 
+#include "pico/stdlib.h"
 #include "hardware/pio.h"
-#include <cstdint>
 
 class SoftwareUART {
 private:
-    uint rx_pin;
-
-    // PIO related members
     PIO pio;
-    uint sm;
+    int sm;  // Changed from uint to int
     uint offset;
+    static const uint SERIAL_BAUD = 115200;
 
 public:
     SoftwareUART(uint pin);
+    ~SoftwareUART();
     uint8_t receiveBytes();
-
+    bool isInitialized() { return pio != nullptr && sm >= 0; }  // Changed comparison
 };
 
-#endif // SOFTWARE_UART_H
+#endif
