@@ -17,8 +17,6 @@ add_library(tools
 add_library(pysquared 
     pysquared/pysquared.h 
     pysquared/pysquared.cpp
-    device_drivers/software-uart/software-uart.h
-    device_drivers/software-uart/software-uart.cpp 
 )
 
 add_library(functions 
@@ -56,6 +54,7 @@ add_library(mcp2515
     device_drivers/mcp2515/MCP2515.h 
     device_drivers/mcp2515/MCP2515.cpp
 )
+
 
 # Library dependencies
 target_link_libraries(main PRIVATE 
@@ -112,6 +111,7 @@ target_link_libraries(pysquared PRIVATE
     vl6180 
     ads1015 
     mcp2515
+    software_uart
 )
 
 # Device driver dependencies
@@ -164,3 +164,5 @@ target_link_libraries(functions PRIVATE
     vl6180 
     mcp2515
 )
+
+add_subdirectory(device_drivers/software-uart)

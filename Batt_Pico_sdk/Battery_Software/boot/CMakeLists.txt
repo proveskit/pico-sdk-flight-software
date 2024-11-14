@@ -3,6 +3,7 @@ if (TARGET tinyusb_device)
 
     pico_generate_pio_header(boot ${CMAKE_CURRENT_LIST_DIR}/blink.pio)
     pico_generate_pio_header(boot ${CMAKE_CURRENT_LIST_DIR}/neopixel.pio)
+    
 
     target_sources(boot PRIVATE boot.cpp)
 
