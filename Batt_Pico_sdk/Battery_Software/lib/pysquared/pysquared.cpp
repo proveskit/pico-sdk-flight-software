@@ -773,8 +773,10 @@ void pysquared::uart_receive_handler() {
     // Handle software UART reception
 
     uint8_t received = soft_uart.receiveBytes();
+    t.debug_print("Received byte via software UART: " + std::to_string(received) + "\n");
     if (received != 0xFF) {  // Valid byte received
         t.debug_print("Received byte via software UART: " + std::to_string(received) + "\n");
+        sleep_ms(1000);
         exec_uart_command(received);  // Process the command as before
     }
     
