@@ -759,19 +759,31 @@ void pysquared::uart_receive_handler() {
         t.debug_print("GPIO17 is LOW\n");
     }
     */
-    // Handle hardware UART
-    /*
-    string message;
-    const char *msg;
-    
-    message = to_string(battery_voltage()) + "," + to_string(draw_current()) + "," + 
-              to_string(charge_voltage()) + "," + to_string(charge_current()) + "," + 
-              to_string(is_charging());
-    msg = message.c_str();
-    uart_send(msg);
-    */
-    // Handle software UART reception
 
+   // Data packet structure
+    struct BatteryData {
+        float battery_voltage;
+        float draw_current;
+        float charge_voltage;
+        float charge_current;
+        // Add more sensor data as needed
+    };
+
+       // Data packet structure
+    BatteryData data ={
+        .battery_voltage = battery_voltage(),
+        .draw_current = draw_current(),
+        .charge_voltage = charge_voltage(),
+        .charge_current = charge_current()
+        // Add more sensor data as needed
+    };
+
+    char buffer[50];
+    snprintf(buffer, sizeof[buffer] "%f,%f,%f,%f", data.battery_voltage, data.draw_current, data.charge_voltage, data.charge_current);
+    
+    uart_puts(uart0, buffer);
+    // Handle software UART reception
+    /*
     uint8_t received = soft_uart.receiveBytes();
     t.debug_print("Received byte via software UART: " + std::to_string(received) + "\n");
     if (received != 0xFF) {  // Valid byte received
@@ -779,7 +791,7 @@ void pysquared::uart_receive_handler() {
         sleep_ms(1000);
         exec_uart_command(received);  // Process the command as before
     }
-    
+    */
 }
 
     /*
