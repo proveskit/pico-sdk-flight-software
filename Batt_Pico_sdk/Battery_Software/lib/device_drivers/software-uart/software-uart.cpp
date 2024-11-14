@@ -5,16 +5,15 @@
 SoftwareUART::SoftwareUART(uint pin) {
     printf("Initializing SoftwareUART on pin %d\n", pin);
     
+    // Initialize sm to invalid value
     sm = -1;
-    pio = pio1;
     
+    // Validate PIO and SM allocation
+    pio = pio1;
     if (!pio) {
         printf("ERROR: Failed to get PIO instance\n");
         return;
     }
-
-    // Debug output for pin state
-    printf("Initial pin state: %d\n", gpio_get(pin));
 
     sm = (int)pio_claim_unused_sm(pio, true);
     if (sm < 0) {
@@ -33,24 +32,30 @@ SoftwareUART::SoftwareUART(uint pin) {
         return;
     }
 
-    // Initialize pin with debug output
-    printf("Configuring pin %d for PIO\n", pin);
+    // Initialize pin
     pio_gpio_init(pio, pin);
     gpio_pull_up(pin);
-    printf("Pin state after config: %d\n", gpio_get(pin));
+    printf("Pin initialized\n");
     
-    // Configure state machine with debug output
+    // Configure state machine
     pio_sm_config c = uart_rx_program_get_default_config(offset);
+    
+    // Set input pin
     sm_config_set_in_pins(&c, pin);
     
-    // Calculate and verify baud rate
-    float div = (float)clock_get_hz(clk_sys) / (8 * SERIAL_BAUD);
-    printf("Clock divider: %f (system clock: %lu Hz)\n", div, clock_get_hz(clk_sys));
+    // Important: Configure shifting
+    sm_config_set_in_shift(&c, true, false, 8);  // right shift, no autopush
+    sm_config_set_out_shift(&c, true, false, 8); // right shift, no autopull
+    
+    // Calculate divider
+    float div = (float)clock_get_hz(clk_sys) / (SERIAL_BAUD * 8);
+    printf("Setting clock divider to: %f\n", div);
     sm_config_set_clkdiv(&c, div);
     
-    sm_config_set_in_shift(&c, true, true, 8);
-    
+    // Initialize SM with config
     pio_sm_init(pio, sm, offset, &c);
+    
+    // Clear FIFOs before enabling
     pio_sm_clear_fifos(pio, sm);
     
     printf("Starting state machine\n");
@@ -70,16 +75,13 @@ uint8_t SoftwareUART::receiveBytes() {
 
     printf("Waiting for byte...\n");
     
-    // Add timeout (e.g., 1 second = 1000ms)
     const uint32_t TIMEOUT_MS = 1000;
     uint32_t start_time = to_ms_since_boot(get_absolute_time());
     
     while (true) {
-        // Check for timeout
         uint32_t current_time = to_ms_since_boot(get_absolute_time());
         if (current_time - start_time > TIMEOUT_MS) {
             printf("Timeout waiting for byte\n");
-            // Debug PIO state
             printf("PIO status - RX FIFO empty: %d\n", pio_sm_is_rx_fifo_empty(pio, sm));
             printf("PIO status - RX FIFO level: %d\n", pio_sm_get_rx_fifo_level(pio, sm));
             printf("PIO program counter: 0x%x\n", pio_sm_get_pc(pio, sm));
@@ -88,9 +90,15 @@ uint8_t SoftwareUART::receiveBytes() {
 
         if (!pio_sm_is_rx_fifo_empty(pio, sm)) {
             uint32_t raw_data = pio_sm_get(pio, sm);
-            char c = raw_data & 0xFF;
-            printf("Received raw data: 0x%08x, char: %c\n", raw_data, c);
-            return c;
+            printf("Raw data: 0x%08x\n", raw_data);
+            
+            // The data is shifted into the MSB, so we need to shift it back
+            uint8_t received_byte = (raw_data >> 24) & 0xFF;
+            
+            printf("Decoded byte: 0x%02x ('%c')\n", received_byte, 
+                   (received_byte >= 32 && received_byte <= 126) ? received_byte : '.');
+            
+            return received_byte;
         }
         
         sleep_ms(1);
@@ -98,7 +106,7 @@ uint8_t SoftwareUART::receiveBytes() {
 }
 
 SoftwareUART::~SoftwareUART() {
-    if (pio && sm >= 0) {  // Changed comparison
+    if (pio && sm >= 0) {
         pio_sm_set_enabled(pio, sm, false);
         pio_remove_program(pio, &uart_rx_program, offset);
         pio_sm_unclaim(pio, sm);

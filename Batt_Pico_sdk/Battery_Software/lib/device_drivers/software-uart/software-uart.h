@@ -9,7 +9,7 @@ private:
     PIO pio;
     int sm;  // Changed from uint to int
     uint offset;
-    static const uint SERIAL_BAUD = 115200;
+    static const uint SERIAL_BAUD = 9600;
 
 public:
     SoftwareUART(uint pin);
