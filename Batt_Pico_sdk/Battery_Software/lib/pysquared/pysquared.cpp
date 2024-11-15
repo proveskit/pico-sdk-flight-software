@@ -760,18 +760,25 @@ void pysquared::uart_receive_handler() {
     }
     */
     // Handle hardware UART
-    /*
-    string message;
-    const char *msg;
     
-    message = to_string(battery_voltage()) + "," + to_string(draw_current()) + "," + 
-              to_string(charge_voltage()) + "," + to_string(charge_current()) + "," + 
-              to_string(is_charging());
-    msg = message.c_str();
-    uart_send(msg);
-    */
+    char buffer[50];  
+    snprintf(buffer, sizeof(buffer), "%.2f,%.2f,%.2f,%.2f,%d", 
+        battery_voltage(),
+        draw_current(),
+        charge_voltage(),
+        charge_current(),
+        is_charging());
+        
+    t.debug_print("sending message: " + string(buffer) + "\n");
+    
+    uart_write_blocking(uart0, (const uint8_t*)"START:", 6);
+    // uart_write_blocking(uart0, (const uint8_t*)buffer, strlen(buffer));
+    // uart_write_blocking(uart0, (const uint8_t*)":END\n", 5);
+    
+    t.debug_print("Successful send!\n");
+    
     // Handle software UART reception
-
+    /*
     uint8_t received = soft_uart.receiveBytes();
     t.debug_print("Received byte via software UART: " + std::to_string(received) + "\n");
     if (received != 0xFF) {  // Valid byte received
@@ -779,7 +786,7 @@ void pysquared::uart_receive_handler() {
         sleep_ms(1000);
         exec_uart_command(received);  // Process the command as before
     }
-    
+    */
 }
 
     /*

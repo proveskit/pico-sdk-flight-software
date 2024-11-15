@@ -179,8 +179,7 @@ void test_can(pysquared satellite, neopixel neo, satellite_functions functions) 
        functions.c.uart_receive_handler();
        t.debug_print("Checked!\n");
        watchdog_update();
-       sleep_ms(100);
-       // t.safe_sleep(5000);
+       t.safe_sleep(5000);
    }
 }
 
