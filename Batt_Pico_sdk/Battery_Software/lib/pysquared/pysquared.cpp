@@ -67,13 +67,14 @@ pysquared::pysquared(neopixel neo) :
         /*
             UART init
         */
-        uart_init(uart0,2400);
+        uart_init(uart0, BAUD_RATE);
         gpio_set_function(uart_tx, GPIO_FUNC_UART);
         // gpio_set_function(uart_rx, GPIO_FUNC_UART);
-        uart_set_baudrate(uart0,BAUD_RATE);
+        // uart_set_baudrate(uart0,BAUD_RATE);
         uart_set_hw_flow(uart0, false, false);
         uart_set_format(uart0, 8, 1, UART_PARITY_NONE);
-        uart_set_fifo_enabled(uart0, true);
+        uart_set_fifo_enabled(uart0, false);
+        gpio_set_outover(uart_tx, GPIO_OVERRIDE_INVERT);
         t.debug_print("UART Bus Initialized!\n");
         /*
             SPI init
@@ -778,10 +779,25 @@ void pysquared::uart_receive_handler() {
         // Add more sensor data as needed
     };
 
-    char buffer[50];
-    snprintf(buffer, sizeof[buffer] "%f,%f,%f,%f", data.battery_voltage, data.draw_current, data.charge_voltage, data.charge_current);
     
-    uart_puts(uart0, buffer);
+    // uart_putc(uart0, '1');
+    // uart_putc(uart0, 0xAA);  // 10101010 in binary
+    // printf("Sent 0xAA\n");
+    sleep_ms(1000);  // 1 second delay to make it easier to read
+
+    printf("Battery Voltage: %f\n", data.battery_voltage);
+    printf("Draw Current: %f\n", data.draw_current);
+
+
+    /*
+    uart_puts(uart0, std::to_string(data.draw_current).c_str());
+    printf("%f\n", data.draw_current);
+    uart_puts(uart0, std::to_string(data.charge_voltage).c_str());
+    printf("%f\n", data.charge_voltage);
+    uart_puts(uart0, std::to_string(data.charge_current).c_str());
+    printf("%f\n", data.charge_current);
+    */
+    
     // Handle software UART reception
     /*
     uint8_t received = soft_uart.receiveBytes();

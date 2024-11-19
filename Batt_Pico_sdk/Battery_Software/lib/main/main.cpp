@@ -145,8 +145,10 @@ void test_can(pysquared satellite, neopixel neo, satellite_functions functions) 
     t.debug_print("Starting UART test sequence...\n");
 
     functions.c.flight_computer_on();
+    functions.c.five_volt_enable();
     
     neo.put_pixel(neo.urgb_u32(LED_YELLOW.r, LED_YELLOW.g, LED_YELLOW.b));
+    neo.put_pixel(neo.urgb_u32(0x00,0x00,0x00));
     
     /*
     // Prepare the CAN message - using 8 bytes max for standard CAN
