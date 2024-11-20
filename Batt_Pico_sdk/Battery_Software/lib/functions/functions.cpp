@@ -101,19 +101,19 @@ void satellite_functions::battery_heater(){
 }
 
 bool satellite_functions::burn_handler(bool has_been_attempted){
-    int max_allowed_burn_time=4;
+    int max_allowed_burn_time=5;
     int counter = 0;
     int attempts = 0;
     if(has_been_attempted){
         max_allowed_burn_time = 5;
     }
     try{
-        while(attempts < 5){
+        while(attempts < 1){
             counter = 0;
+            t.debug_print("Burning...");
             c.burn_on();
             while(counter < (max_allowed_burn_time * 100)){
                 sleep_ms(10);
-                c.uart_receive_handler();
                 if(c.burned){
                     break;
                 }

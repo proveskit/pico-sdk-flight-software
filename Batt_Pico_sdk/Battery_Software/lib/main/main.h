@@ -27,7 +27,7 @@
 
 // Time constants (in milliseconds)
 constexpr uint WATCHDOG_TIMEOUT_MS = 5000;    // 5 seconds
-constexpr uint LOITER_TIME_SECONDS = 270;     // 4.5 minutes
+constexpr uint LOITER_TIME_SECONDS = 300;     // 4.5 minutes
 constexpr uint SLEEP_INTERVAL_MS = 1000;      // 1 second
 constexpr uint BLINK_INTERVAL_MS = 500;       // 0.5 seconds
 
@@ -42,6 +42,7 @@ constexpr uint8_t BURNED_BIT = 2;
 constexpr uint8_t HEATER_LATCH_BIT = 3;
 constexpr uint8_t VBUS_RESET_BIT = 4;
 constexpr uint8_t PRIOR_BURN_ATTEMPT = 5;
+constexpr uint8_t BURN_IN_PROGRESS_BIT = 6;
 
 // Instead of uint32_t, define separate RGB values
 struct RGB {
@@ -67,6 +68,10 @@ struct BurnStatus {
 
 // Function declarations
 void main_program(neopixel neo);
+
+uint8_t get_boot(uint8_t* data);
+
+void burn_reset(pysquared& satellite, tools& t, BurnStatus& burnStatus);
 
 // Initialization functions
 bool initializeWatchdog(tools& t);

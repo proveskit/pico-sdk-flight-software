@@ -1,0 +1,3 @@
+/Users/mattchang/pico-sdk/pico-sdk/burn-test/Batt_Pico_sdk/test/pioasm/CMakeFiles/pioasm.dir
+/Users/mattchang/pico-sdk/pico-sdk/burn-test/Batt_Pico_sdk/test/pioasm/CMakeFiles/edit_cache.dir
+/Users/mattchang/pico-sdk/pico-sdk/burn-test/Batt_Pico_sdk/test/pioasm/CMakeFiles/rebuild_cache.dir

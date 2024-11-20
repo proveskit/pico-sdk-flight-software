@@ -55,7 +55,7 @@ private:
     SoftwareUART soft_uart;  // Use pin 17 for RX
 
     bool charge_status;
-    bool armed = false;  // Initialize to false by default
+    bool armed = true;  // Initialize to false by default
 
     bool lidar_initialized = false;
     bool led_driver_initialized = false;
