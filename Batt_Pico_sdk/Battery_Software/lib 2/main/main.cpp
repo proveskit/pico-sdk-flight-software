@@ -28,35 +28,29 @@ void main_program(neopixel neo)
     functions.battery_manager();
     t.debug_print("about to enter the main loop!\n");
 
-    t.debug_print("Loitering...");
+    t.debug_print("Loitering...\n");
 
-    uint8_t counter = 0;
-    
-    while (counter < 10)
+    uint16_t counter = 0;
+
+    while (counter < 600)
     {
         sleep_ms(1000);
+        t.debug_print(to_string(600 - counter) + " seconds\n");
         watchdog_update();
         counter++;
     }
 
     updateBootCount(satellite, t, data);
 
-    if (get_boot(data) <= 3)
-    {
-        // Check burn status
-        BurnStatus burnStatus = checkBurnStatus(satellite, t, data);
-        burn_reset(satellite, t, burnStatus);
-        // Execute burn sequence if conditions are met
-        if (!satellite.burned && !burnStatus.previous_brownout && satellite.is_armed())
-        {
-            executeBurnSequence(satellite, functions, t, neo, burnStatus.has_burned_before);
-        }
-    }
+    BurnStatus burnStatus = checkBurnStatus(satellite, t, data);
+
+    executeBurnSequence(satellite, functions, t, neo, burnStatus.has_burned_before);
 
     // Main operation loop
     while (true)
     {
-        runMainLoop(satellite, functions, t, neo);
+        sleep_ms(1000);
+        watchdog_update();
     }
 }
 
@@ -272,7 +266,7 @@ bool executeBurnSequence(pysquared &satellite, satellite_functions &functions,
     if (functions.burn_handler(has_burned_before))
     {
         satellite.arm(false);
-        satellite.bit_set(STATUS_REG, BURNED_BIT, true);  // Changed to true to indicate successful burn
+        satellite.bit_set(STATUS_REG, BURNED_BIT, true); // Changed to true to indicate successful burn
         satellite.bit_set(STATUS_REG, BROWNOUT_BIT, false);
         // satellite.flash_update();
         t.debug_print("Flash updated to reflect successful burn and disarmed status!\n");

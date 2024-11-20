@@ -114,9 +114,6 @@ bool satellite_functions::burn_handler(bool has_been_attempted){
             c.burn_on();
             while(counter < (max_allowed_burn_time * 100)){
                 sleep_ms(10);
-                if(c.burned){
-                    break;
-                }
                 if(counter%100==0){
                     watchdog_update();
                 }

@@ -27,7 +27,7 @@
 
 // Time constants (in milliseconds)
 constexpr uint WATCHDOG_TIMEOUT_MS = 5000;    // 5 seconds
-constexpr uint LOITER_TIME_SECONDS = 300;     // 4.5 minutes
+constexpr uint LOITER_TIME_SECONDS = 10;     // 4.5 minutes
 constexpr uint SLEEP_INTERVAL_MS = 1000;      // 1 second
 constexpr uint BLINK_INTERVAL_MS = 500;       // 0.5 seconds
 

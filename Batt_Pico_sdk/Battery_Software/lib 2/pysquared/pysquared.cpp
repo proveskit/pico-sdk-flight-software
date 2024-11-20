@@ -331,6 +331,7 @@ void pysquared::mram_read(uint8_t *data, uint16_t address) {
     }
 }
 
+
 // Write data to MRAM
 void pysquared::mram_write(const uint8_t *data, uint16_t address, uint16_t length) {
     try {
