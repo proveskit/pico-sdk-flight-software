@@ -12,7 +12,7 @@ target_include_directories(pct2075 PUBLIC lib)
 target_include_directories(pca9685 PUBLIC lib)
 target_include_directories(vl6180 PUBLIC lib)
 target_include_directories(ads1015 PUBLIC lib)
-target_include_directories(mcp25625 PUBLIC lib)
+target_include_directories(mcp2515 PUBLIC lib)
 target_include_directories(functions PUBLIC lib)
 
 pico_enable_stdio_usb(main 1)

@@ -30,26 +30,165 @@ void main_program(neopixel neo) {
     if (!satellite.burned && !burnStatus.previous_brownout && satellite.is_armed()) {
         executeBurnSequence(satellite, functions, t, neo, burnStatus.has_burned_before);
     }
-
-    // Initialize CAN Bus
-    t.debug_print("Initializing CAN Bus!\n");
-    satellite.can_bus_init();
-    t.debug_print("CAN Bus Initialized!\n");
      
     // Main operation loop
     while (true) {
-        satellite.all_faces_off();
         satellite.camera_off();
         sleep_ms(SLEEP_INTERVAL_MS);
         watchdog_update();
         satellite.all_faces_on();
-        satellite.camera_on();
         functions.battery_manager();
         t.debug_print("about to enter the main loop!\n");
         
-        runMainLoop(satellite, functions, t, neo);
+        // runMainLoop(satellite, functions, t, neo);
+
+        test_can(satellite, neo, functions);
     }
 }
+
+/* 
+====================
+Main Loop Operations
+====================
+*/
+
+void runMainLoop(pysquared& satellite, satellite_functions& functions, 
+                tools& t, neopixel& neo) {
+    // uint8_t stuff[] = {0x05};
+    while (true) {
+        watchdog_update();
+        functions.c.uart_receive_handler();
+        
+        switch (satellite.power_mode()) {
+            case 0:
+                critical_power_operations(t, functions);
+                break;
+            case 1:
+                low_power_operations(t, neo, functions);
+                break;
+            case 2:
+                normal_power_operations(t, neo, functions);
+                break;
+            case 3:
+                maximum_power_operations(t, neo, functions);
+                break;
+        }
+        satellite.check_reboot();
+    }
+}
+
+void critical_power_operations(tools t, satellite_functions functions) {
+    t.debug_print("Satellite is in critical power mode!\n");
+    functions.c.flight_computer_on();
+    // NOTE: in Critical Power we turn off the watchdog here
+    functions.c.five_volt_disable();
+
+    functions.c.uart_receive_handler();
+    sleep_ms(SLEEP_INTERVAL_MS);
+    functions.c.uart_receive_handler();
+    sleep_ms(SLEEP_INTERVAL_MS);
+    functions.c.flight_computer_off();
+    functions.long_hybernate();
+    functions.battery_manager();
+    watchdog_update();
+}
+
+void low_power_operations(tools t, neopixel neo, satellite_functions functions) {
+    t.debug_print("Satellite is in low power mode!\n");
+    neo.put_pixel(neo.urgb_u32(LED_RED.r, LED_RED.g, LED_RED.b));
+    functions.c.flight_computer_on();
+    functions.c.five_volt_enable();
+    functions.c.uart_receive_handler();
+    
+    for (int i = 0; i < 9; i++) {
+        t.safe_sleep(SLEEP_INTERVAL_MS);
+        functions.c.uart_receive_handler();
+    }
+    
+    t.safe_sleep(SLEEP_INTERVAL_MS);
+    functions.c.flight_computer_off();
+    functions.short_hybernate();
+    functions.battery_manager();
+}
+
+void normal_power_operations(tools t, neopixel neo, satellite_functions functions) {
+    t.debug_print("Satellite is in normal power mode!\n");
+    neo.put_pixel(neo.urgb_u32(LED_YELLOW.r, LED_YELLOW.g, LED_YELLOW.b));
+    functions.c.flight_computer_on();
+    functions.c.five_volt_enable();
+    functions.battery_manager();
+    functions.c.uart_receive_handler();
+    t.debug_print("LiDAR Distance: " + to_string(functions.c.lidar.getDistance()) + "mm\n");
+    watchdog_update();
+    t.safe_sleep(SLEEP_INTERVAL_MS);
+}
+
+void maximum_power_operations(tools t, neopixel neo, satellite_functions functions) {
+    t.debug_print("Satellite is in maximum power mode!\n");
+    neo.put_pixel(neo.urgb_u32(LED_GREEN.r, LED_GREEN.g, LED_GREEN.b));
+    functions.c.flight_computer_on();
+    functions.c.five_volt_enable();
+    functions.battery_manager();
+    functions.c.uart_receive_handler();
+    t.debug_print("LiDAR Distance: " + to_string(functions.c.lidar.getDistance()) + "mm\n");
+    watchdog_update();
+    t.safe_sleep(SLEEP_INTERVAL_MS);
+}
+
+/*
+====================
+Test Loops
+====================
+*/
+void test_can(pysquared satellite, neopixel neo, satellite_functions functions) {
+    tools t(true, "[CAN TEST] ");
+    t.debug_print("Starting UART test sequence...\n");
+
+    functions.c.flight_computer_on();
+    
+    neo.put_pixel(neo.urgb_u32(LED_YELLOW.r, LED_YELLOW.g, LED_YELLOW.b));
+    
+    /*
+    // Prepare the CAN message - using 8 bytes max for standard CAN
+    struct can_frame frame;
+    frame.can_id = 0x123;    // Arbitrary CAN ID
+    frame.can_dlc = 7;       // Length of "Testing"
+    
+    // Message that fits in 8 bytes
+    const char* message = "Testing";
+    memcpy(frame.data, message, frame.can_dlc);
+    
+    t.debug_print("Beginning transmission loop...\n");
+    
+    while (true) {
+        MCP2515::ERROR result = satellite.can_bus.sendMessage(&frame);
+        
+        if (result == MCP2515::ERROR_OK) {
+            t.debug_print("CAN message sent successfully\n");
+            neo.put_pixel(neo.urgb_u32(LED_GREEN.r, LED_GREEN.g, LED_GREEN.b));
+        } else {
+            t.debug_print("Error sending message: " + std::to_string(static_cast<int>(result)) + "\n");
+            neo.put_pixel(neo.urgb_u32(LED_RED.r, LED_RED.g, LED_RED.b));
+        }
+        
+        sleep_ms(1000);  // Wait for 1 second before next transmission
+        watchdog_update();  // Keep the watchdog happy
+    }
+    */
+   while (true) {
+       functions.c.uart_receive_handler();
+       watchdog_update();
+       sleep_ms(100);
+       // t.safe_sleep(5000);
+   }
+}
+
+
+/*
+====================
+Helper Functions
+====================
+*/
 
 bool initializeWatchdog(tools& t) {
     bool watchdog_reset = false;
@@ -136,106 +275,3 @@ bool executeBurnSequence(pysquared& satellite, satellite_functions& functions,
     return false;
 }
 
-/* USUAL MAIN LOOP
-
-void runMainLoop(pysquared& satellite, satellite_functions& functions, 
-                tools& t, neopixel& neo) {
-    // uint8_t stuff[] = {0x05};
-
-    keyboard_test();
-
-    while (true) {
-        watchdog_update();
-        // satellite.can_bus_send(stuff);
-        // satellite.can_bus_listen();
-        
-        switch (satellite.power_mode()) {
-            case 0:
-                critical_power_operations(t, functions);
-                break;
-            case 1:
-                low_power_operations(t, neo, functions);
-                break;
-            case 2:
-                normal_power_operations(t, neo, functions);
-                break;
-            case 3:
-                maximum_power_operations(t, neo, functions);
-                break;
-        }
-        satellite.check_reboot();
-    }
-}*/
-
-void runMainLoop(pysquared& satellite, satellite_functions& functions, 
-                tools& t, neopixel& neo) {
-    // Initialize command system
-    t.init_command_system();
-
-    while (true) {
-        watchdog_update();
-        t.process_input(satellite, functions, neo);
-        
-        // Optional: Still allow normal power mode operations
-        if (satellite.power_mode() >= 2) {
-            functions.battery_manager();
-            functions.c.uart_receive_handler();
-        }
-        
-        sleep_ms(10);
-    }
-}
-
-void critical_power_operations(tools t, satellite_functions functions) {
-    t.debug_print("Satellite is in critical power mode!\n");
-    functions.c.flight_computer_on();
-    functions.c.uart_receive_handler();
-    sleep_ms(SLEEP_INTERVAL_MS);
-    functions.c.uart_receive_handler();
-    sleep_ms(SLEEP_INTERVAL_MS);
-    functions.c.flight_computer_off();
-    functions.long_hybernate();
-    functions.battery_manager();
-    watchdog_update();
-}
-
-void low_power_operations(tools t, neopixel neo, satellite_functions functions) {
-    t.debug_print("Satellite is in low power mode!\n");
-    neo.put_pixel(neo.urgb_u32(LED_RED.r, LED_RED.g, LED_RED.b));
-    functions.c.flight_computer_on();
-    functions.c.uart_receive_handler();
-    
-    for (int i = 0; i < 9; i++) {
-        t.safe_sleep(SLEEP_INTERVAL_MS);
-        functions.c.uart_receive_handler();
-    }
-    
-    t.safe_sleep(SLEEP_INTERVAL_MS);
-    functions.c.flight_computer_off();
-    functions.short_hybernate();
-    functions.battery_manager();
-}
-
-void normal_power_operations(tools t, neopixel neo, satellite_functions functions) {
-    t.debug_print("Satellite is in normal power mode!\n");
-    neo.put_pixel(neo.urgb_u32(LED_YELLOW.r, LED_YELLOW.g, LED_YELLOW.b));
-    functions.c.flight_computer_on();
-    functions.c.five_volt_enable();
-    functions.battery_manager();
-    functions.c.uart_receive_handler();
-    t.debug_print("LiDAR Distance: " + to_string(functions.c.lidar.getDistance()) + "mm\n");
-    watchdog_update();
-    t.safe_sleep(SLEEP_INTERVAL_MS);
-}
-
-void maximum_power_operations(tools t, neopixel neo, satellite_functions functions) {
-    t.debug_print("Satellite is in maximum power mode!\n");
-    neo.put_pixel(neo.urgb_u32(LED_GREEN.r, LED_GREEN.g, LED_GREEN.b));
-    functions.c.flight_computer_on();
-    functions.c.five_volt_enable();
-    functions.battery_manager();
-    functions.c.uart_receive_handler();
-    t.debug_print("LiDAR Distance: " + to_string(functions.c.lidar.getDistance()) + "mm\n");
-    watchdog_update();
-    t.safe_sleep(SLEEP_INTERVAL_MS);
-}

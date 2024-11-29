@@ -6,6 +6,7 @@
 // Standard library includes
 #include <iostream>
 #include <stdio.h>
+#include <cstring>
 
 // Custom library includes
 #include <neopixel/neopixel.h>
@@ -77,6 +78,7 @@ bool executeBurnSequence(pysquared& satellite, satellite_functions& functions,
                         tools& t, neopixel& neo, bool has_burned_before);
 void runMainLoop(pysquared& satellite, satellite_functions& functions, 
                 tools& t, neopixel& neo);
+void test_can(pysquared satellite, neopixel neo, satellite_functions functions);
 
 // Power mode operation functions
 void critical_power_operations(tools t, satellite_functions functions);
